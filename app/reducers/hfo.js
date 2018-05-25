@@ -27,7 +27,9 @@ const initialState = {
     updateUserError: '',
     updateUserSuccess: '',
     pickupError: '',
-    pickupSuccess: ''
+    pickupSuccess: '',
+    pickupCompleteError: '',
+    pickupCompleteSuccess: ''
   },
   text: '',
   apps: [],
@@ -168,6 +170,18 @@ export default (state = initialState, action) => {
           ...state.meta,
           pickupSuccess: action.type === 'PICKUP_SUCCESS' ? 'Updated Successfully' : '',
           pickupError: action.type === 'PICKUP_FAILURE' ? action.message : ''
+        }
+      }
+
+    case 'PICKUP_COMPLETE_SUCCESS':
+    case 'PICKUP_COMPLETE_FAILURE':
+    case 'PICKUP_COMPLETE_RESET':
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          pickupCompleteSuccess: action.type === 'PICKUP_COMPLETE_SUCCESS' ? 'Updated Successfully' : '',
+          pickupCompleteError: action.type === 'PICKUP_COMPLETE_FAILURE' ? action.message : ''
         }
       }
 

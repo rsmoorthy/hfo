@@ -2,7 +2,7 @@ import md5 from 'md5'
 import axios from 'axios'
 import qs from 'qs'
 
-const host = 'http://192.168.0.105:3000'
+const host = 'http://192.168.8.101:3000'
 
 export const getCurrentFlights = () => {
   return (dispatch, getState) => {
@@ -170,6 +170,34 @@ export const doUpdatePickup = value => {
       })
       .catch(error => {
         dispatch({ type: 'PICKUP_FAILURE', message: error.message })
+      })
+  }
+}
+
+export const doCompletePickup = value => {
+  return (dispatch, getState) => {
+    console.log('complete pickup', value)
+    const state = getState()
+    dispatch({ type: 'PICKUP_COMPLETE_RESET' })
+    const options = {}
+    // .post(host + '/pickups', { ...value, bookingAgentId: state.hfo.login.id })
+    axios({
+      method: 'PUT',
+      url: host + '/pickups/complete/' + value._id,
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      },
+      data: value
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'PICKUP_COMPLETE_SUCCESS', user: value })
+          setTimeout(() => dispatch({ type: 'PICKUP_COMPLETE_RESET' }), 8000)
+          getPickups()(dispatch, getState)
+        } else dispatch({ type: 'PICKUP_COMPLETE_FAILURE', message: response.data.message })
+      })
+      .catch(error => {
+        dispatch({ type: 'PICKUP_COMPLETE_FAILURE', message: error.message })
       })
   }
 }
