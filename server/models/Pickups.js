@@ -12,6 +12,7 @@ var PickupsSchema = new mongoose.Schema({
   flight: String,
   pickupDate: Date,
   pickupTime: Date,
+  completed: String,
   receiverCompleted: Date,
   passengerCompleted: Date,
   updated_at: { type: Date, default: Date.now }

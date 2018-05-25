@@ -10,6 +10,7 @@ import SearchTab from './AppTabNavigator/SearchTab'
 import AddMediaTab from './AppTabNavigator/AddMediaTab'
 import LikesTab from './AppTabNavigator/LikesTab'
 import Profile from './Profile'
+import DisplayList from './DisplayList'
 import PassengerArrivalsTab from './AppTabNavigator/PassengerArrivalsTab'
 import Signup from './Signup'
 import PickupForm from './PickupForm'
@@ -133,6 +134,22 @@ class MainScreen extends Component {
           Profile: Profile
         },
         navigationOptions
+      )
+    } else if (this.props.login.role === 'Display') {
+      const noptions = {
+        ...navigationOptions,
+        tabBarOptions: {
+          ...navigationOptions.tabBarOptions,
+          showLabel: false,
+          showIcon: false
+        }
+      }
+      console.log(noptions)
+      userStack = createTabNavigator(
+        {
+          DisplayList: DisplayList
+        },
+        noptions
       )
     } else if (this.props.login.role === 'Admin') {
       userStack = createTabNavigator(

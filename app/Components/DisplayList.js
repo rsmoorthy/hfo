@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { View, StyleSheet } from 'react-native'
+import { View, StatusBar, StyleSheet } from 'react-native'
 import moment from 'moment'
 
 import {
@@ -26,7 +26,7 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 // import material from '../../native-base-theme/variables/material'
 // import platform from '../../native-base-theme/variables/platform'
 
-class PickupList extends Component {
+class DisplayList extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
     header: null
@@ -42,18 +42,10 @@ class PickupList extends Component {
     return (
       <Container>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
-          <Left>
-            <Button transparent>
-              <Icon name="menu" />
-            </Button>
-          </Left>
           <Body>
-            <Title>Pickup List</Title>
+            <Title>Welcome</Title>
           </Body>
           <Right>
-            <Button transparent onPress={() => this.props.navigation.push('PickupForm')}>
-              <Icon name="ios-add" />
-            </Button>
             <Button transparent onPress={() => this.props.getPickups()}>
               <Icon name="ios-refresh" />
             </Button>
@@ -62,40 +54,27 @@ class PickupList extends Component {
             </Button>
           </Right>
         </Header>
+        <StatusBar hidden={true} barStyle="dark-content" />
         <Content>
           <List>
             {pickups.length === 0 && (
               <ListItem>
                 <Body>
                   <View>
-                    <Text style={{ color: 'gray', fontStyle: 'italic' }}>No Pickup List</Text>
+                    <Text style={{ color: 'navyblue', fontSize: 96 }}>Welcome to HFO</Text>
                   </View>
                 </Body>
               </ListItem>
             )}
             {pickups.map((pickup, index) => (
-              <ListItem key={index} onPress={() => this.props.navigation.push('PickupForm', { pickup: pickup })}>
+              <ListItem key={index}>
                 <Body>
                   <View>
-                    <Text style={{ fontSize: 20, color: 'darkblue' }}>
-                      {pickup.flight} {pickup.name}
-                    </Text>
-                    <Text note style={{ color: 'gray' }}>
-                      {pickup.airport}
-                    </Text>
+                    <Text style={{ fontSize: 28, color: 'darkblue' }}>{pickup.flight}</Text>
+                    <Text style={{ fontSize: 48, color: 'darkblue' }}>{pickup.name}</Text>
                     <Text note style={{ color: 'green', fontStyle: 'italic' }}>
                       Receiver: {pickup.receiverName} {pickup.receiverMobile}
                     </Text>
-                    {pickup.completed !== 'Yes' && (
-                      <Button small danger onPress={() => this.props.doCompletePickup(pickup)}>
-                        <Text>Complete Pickup</Text>
-                      </Button>
-                    )}
-                    {pickup.completed === 'Yes' && (
-                      <Text note style={{ color: '#e75480', fontStyle: 'italic' }}>
-                        Completed at {moment(pickup.receiverComplete).format('Do-MMM hh:mm')}
-                      </Text>
-                    )}
                   </View>
                 </Body>
                 <Right>
@@ -113,7 +92,7 @@ class PickupList extends Component {
   }
 }
 export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']), utils.mapDispatchToProps)(
-  PickupList
+  DisplayList
 )
 
 const styles = StyleSheet.create({
