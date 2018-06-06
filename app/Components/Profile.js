@@ -214,8 +214,9 @@ class Profile extends Component {
   }
 
   render() {
+    const opacity = this.props.meta.screenOpacity
     return (
-      <Container style={styles.container}>
+      <Container style={{ flex: 1, backgroundColor: '#EAE8EF', opacity: opacity }}>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Icon name="menu" />
@@ -266,7 +267,11 @@ class Profile extends Component {
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10 }}>
                   <View style={{ flexDirection: 'row' }}>
                     {/** Edit profile takes up 3/4th **/}
-                    <Button bordered dark style={{ flex: 3, marginLeft: 10, justifyContent: 'center', height: 30 }}>
+                    <Button
+                      bordered
+                      dark
+                      onPress={() => this.props.navigation.navigate('Modal')}
+                      style={{ flex: 3, marginLeft: 10, justifyContent: 'center', height: 30 }}>
                       <Text>Edit Profile</Text>
                     </Button>
 
@@ -338,12 +343,14 @@ class Profile extends Component {
     )
   }
 }
-export default connect(utils.mapStateToProps('hfo', ['login', 'notifications']), utils.mapDispatchToProps)(Profile)
+export default connect(utils.mapStateToProps('hfo', ['login', 'notifications', 'meta']), utils.mapDispatchToProps)(
+  Profile
+)
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white'
+    backgroundColor: '#EAE8EF'
   }
 })
 

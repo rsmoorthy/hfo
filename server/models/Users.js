@@ -6,7 +6,12 @@ var UsersSchema = new mongoose.Schema({
   mobile: String,
   password: String,
   expoToken: String,
+  lastSeen: { type: Date },
+  authCode: String,
+  accessToken: String,
+  photo: String,
   role: { type: String, enum: ['Admin', 'Passenger', 'Receiver', 'BookingAgent', 'Display'] },
+  created_at: { type: Date },
   updated_at: { type: Date, default: Date.now }
 })
 
