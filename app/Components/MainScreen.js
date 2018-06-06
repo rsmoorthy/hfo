@@ -15,6 +15,8 @@ import PassengerArrivalsTab from './AppTabNavigator/PassengerArrivalsTab'
 import Signup from './Signup'
 import PickupForm from './PickupForm'
 import PickupList from './PickupList'
+import CameraView from './CameraView'
+import ModalScreen from './ModalScreen'
 import DisplayTab from './AppTabNavigator/DisplayTab'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
@@ -47,8 +49,25 @@ const navigationOptions = {
     },
     activeTintColor: '#55acee',
     inactiveTintColor: '#000000', // '#d1cece',
-    showLabel: true,
+    showLabel: false,
     showIcon: true
+  }
+}
+
+function forVertical(props) {
+  const { layout, position, scene } = props
+
+  const index = scene.index
+  const height = layout.initHeight
+
+  const translateX = 0
+  const translateY = position.interpolate({
+    inputRange: ([index - 1, index, index + 1]: Array<number>),
+    outputRange: ([height, 0, 0]: Array<number>)
+  })
+
+  return {
+    transform: [{ translateX }, { translateY }]
   }
 }
 
@@ -160,14 +179,15 @@ class MainScreen extends Component {
               tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />
             }
           },
+          Profile: Profile,
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
               tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
             }
           },
-          FlightArrivals: FlightArrivals,
-          Profile: Profile
+          CameraView: CameraView,
+          FlightArrivals: FlightArrivals
         },
         navigationOptions
       )
@@ -182,8 +202,25 @@ class MainScreen extends Component {
     const MyAppNavigator = createSwitchNavigator(stack, {
       initialRouteName: this.props.login.role === '' ? 'Auth' : 'Main'
     })
+
+    const RootNavigator = createStackNavigator(
+      {
+        Main: MyAppNavigator,
+        Modal: ModalScreen
+      },
+      {
+        mode: 'modal',
+        header: null,
+        headerMode: 'none',
+        transitionConfig: () => ({ screenInterpolator: forVertical }),
+        cardStyle: {
+          opacity: 1,
+          backgroundColor: 'transparent'
+        }
+      }
+    )
     return (
-      <MyAppNavigator
+      <RootNavigator
         ref={nav => {
           NavigatorService.setContainer(nav)
         }}

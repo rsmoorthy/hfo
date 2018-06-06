@@ -1,10 +1,22 @@
 import React, { Component } from 'react'
-import { View, Text, Image, StyleSheet, Button, ActivityIndicator, StatusBar } from 'react-native'
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Button,
+  ActivityIndicator,
+  TouchableHighlight,
+  TouchableOpacity,
+  StatusBar
+} from 'react-native'
 import { Icon } from 'native-base'
 
 import t from 'tcomb-form-native' // 0.6.9
 import { connect } from 'react-redux'
 import * as utils from '../utils'
+import Expo from 'expo'
+import config from '../config'
 
 const Form = t.form.Form
 const LoginForm = t.struct({
@@ -50,6 +62,34 @@ class Login extends Component {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-log-in" style={{ color: tintColor }} />
   }
 
+  handleGoogleSignin = async () => {
+    let err
+    const result = await Expo.Google.logInAsync({
+      androidClientId: config.google.androidClientId,
+      androidStandaloneAppClientId: config.google.androidStandaloneAppClientId,
+      scopes: ['profile', 'email']
+    }).catch(e => {
+      err = e
+    })
+
+    if (err)
+      return this.props.dispatch({
+        type: 'LOGIN_FAILURE',
+        message: 'Google Signin Error: ',
+        err
+      })
+
+    console.log('google signin', result.type, result.accessToken, result)
+    if (result.type === 'success') {
+      this.props.doGoogleSignin({
+        name: result.user.name,
+        email: result.user.email,
+        photo: result.user.photoUrl,
+        accessToken: result.accessToken
+      })
+    }
+  }
+
   handleSubmit = () => {
     const value = this._form.getValue()
     if (value) {
@@ -62,7 +102,12 @@ class Login extends Component {
     return (
       <View style={styles.container}>
         <StatusBar hidden={true} barStyle="dark-content" />
-        <Text style={{ fontFamily: 'serif', fontSize: 32, color: 'white' }}>HFO</Text>
+        {/* <Text style={{ fontFamily: 'serif', fontSize: 32, color: 'white' }}>HFO</Text> */}
+        <Image
+          style={{ alignSelf: 'stretch', flex: 0.2, height: undefined, width: undefined }}
+          source={require('../assets/logo_white.png')}
+          resizeMode="contain"
+        />
         <View style={{ marginTop: 50, width: '80%' }}>
           <Form ref={c => (this._form = c)} type={LoginForm} value={this.state.value} options={loginFormOptions} />
           <Button title="Login" onPress={this.handleSubmit} />
@@ -78,12 +123,14 @@ class Login extends Component {
             justifyContent: 'center'
           }}>
           <Button
-            style={{ flex: 1, marginRight: 50 }}
+            style={{ flex: 0.3, marginRight: 50 }}
             title="   Sign Up    "
             onPress={() => this.props.navigation.navigate('Signup')}
           />
           <Text style={{ flex: 0.2 }}> </Text>
-          <Image style={{ flex: 0.5, height: 33, width: 135 }} source={require('../assets/signin_with_google.png')} />
+          <TouchableHighlight style={{ flex: 0.5, padding: 0 }} onPress={this.handleGoogleSignin}>
+            <Image style={{ flex: 1, width: 160 }} source={require('../assets/signin_with_google.png')} />
+          </TouchableHighlight>
         </View>
         <Image
           style={{ alignSelf: 'stretch', flex: 0.5, height: undefined, width: undefined }}
