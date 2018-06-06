@@ -65,6 +65,7 @@ class Login extends Component {
   handleGoogleSignin = async () => {
     let err
     const result = await Expo.Google.logInAsync({
+      behavior: 'system',
       androidClientId: config.google.androidClientId,
       androidStandaloneAppClientId: config.google.androidStandaloneAppClientId,
       scopes: ['profile', 'email']
