@@ -2,11 +2,12 @@ import md5 from 'md5'
 import axios from 'axios'
 import qs from 'qs'
 
-const host = 'http://192.168.8.101:3000'
+const hostip = process.env.SERVER_IP ? process.env.SERVER_IP : '192.168.8.100'
+const host = 'http://' + hostip + ':3000'
+console.log('host', host, process.env.SERVER_IP, process.env)
 
 export const getCurrentFlights = () => {
   return (dispatch, getState) => {
-    console.log('within getCurrentFlights')
     //  .get("http://139.59.30.14:3000/flights")
     axios
       .get(host + '/flights')
@@ -39,16 +40,32 @@ export const getUserList = () => {
 
 export const doSignup = value => {
   return (dispatch, getState) => {
-    dispatch({ type: 'SIGNUP_IN_PROGRESS' })
+    dispatch({ type: 'SIGNUP_IN_PROGRESS', verify: false })
 
     axios
       .post(host + '/auth/signup', value)
       .then(response => {
-        if (response.data.status === 'ok') dispatch({ type: 'SIGNUP_SUCCESS' })
-        else dispatch({ type: 'SIGNUP_FAILURE', message: response.data.message })
+        if (response.data.status === 'ok') dispatch({ type: 'SIGNUP_VERIFY', id: response.data.value.id })
+        else dispatch({ type: 'SIGNUP_FAILURE', message: response.data.message, verify: false })
       })
       .catch(error => {
-        dispatch({ type: 'SIGNUP_FAILURE', message: error.message })
+        dispatch({ type: 'SIGNUP_FAILURE', message: error.message, verify: false })
+      })
+  }
+}
+
+export const doSignupVerify = value => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'SIGNUP_IN_PROGRESS', verify: true })
+
+    axios
+      .post(host + '/auth/signupverify', value)
+      .then(response => {
+        if (response.data.status === 'ok') dispatch({ type: 'SIGNUP_SUCCESS', verify: true })
+        else dispatch({ type: 'SIGNUP_FAILURE', message: response.data.message, verify: true })
+      })
+      .catch(error => {
+        dispatch({ type: 'SIGNUP_FAILURE', message: error.message, verify: true })
       })
   }
 }
@@ -63,6 +80,25 @@ export const doLogin = value => {
 
     axios
       .post(host + '/auth/login', value)
+      .then(response => {
+        if (response.data.status === 'ok') dispatch({ type: 'LOGIN_SUCCESS', value: response.data.value })
+        else dispatch({ type: 'LOGIN_FAILURE', message: response.data.message })
+      })
+      .catch(error => {
+        dispatch({ type: 'LOGIN_FAILURE', message: error.message })
+      })
+  }
+}
+
+export const doGoogleSignin = value => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'LOGIN_IN_PROGRESS' })
+    let state = getState()
+    value = { ...value }
+    value.expoToken = state.hfo.expoToken
+
+    axios
+      .post(host + '/auth/googlesignin', value)
       .then(response => {
         if (response.data.status === 'ok') dispatch({ type: 'LOGIN_SUCCESS', value: response.data.value })
         else dispatch({ type: 'LOGIN_FAILURE', message: response.data.message })
@@ -210,6 +246,11 @@ export const doReceiveNotification = notification => ({
 export const setExpoToken = expoToken => ({
   type: 'EXPO_TOKEN',
   expoToken
+})
+
+export const setOpacity = opacity => ({
+  type: 'OPACITY',
+  opacity
 })
 
 // Remove the rest of it

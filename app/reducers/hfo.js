@@ -7,7 +7,9 @@ const initialState = {
   pickups: [],
   notifications: [],
   signup: {
+    id: '',
     inProgress: false,
+    needAuthCode: false,
     successMessage: '',
     errorMessage: ''
   },
@@ -23,6 +25,7 @@ const initialState = {
     error: ''
   },
   meta: {
+    screenOpacity: 1,
     inProgress: false,
     updateUserError: '',
     updateUserSuccess: '',
@@ -48,6 +51,15 @@ const getUserListByRole = (role = 'Passenger', users) => {
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case 'OPACITY':
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          screenOpacity: action.opacity
+        }
+      }
+
     case 'CURRENT_FLIGHTS':
       return {
         ...state,
@@ -72,10 +84,24 @@ export default (state = initialState, action) => {
         }
       }
 
+    case 'SIGNUP_VERIFY':
+      return {
+        ...state,
+        signup: {
+          id: action.id,
+          needAuthCode: true,
+          inProgress: false,
+          successMessage: '',
+          errorMessage: ''
+        }
+      }
+
     case 'SIGNUP_SUCCESS':
       return {
         ...state,
         signup: {
+          id: '',
+          needAuthCode: false,
           inProgress: false,
           successMessage: 'Signup Successful!',
           errorMessage: ''
@@ -83,9 +109,12 @@ export default (state = initialState, action) => {
       }
 
     case 'SIGNUP_FAILURE':
+      console.log('signup failure', action, state.signup.id)
       return {
         ...state,
         signup: {
+          id: action.verify ? state.signup.id : '',
+          needAuthCode: action.verify === true,
           inProgress: false,
           successMessage: '',
           errorMessage: action.message
@@ -96,6 +125,7 @@ export default (state = initialState, action) => {
       return {
         ...state,
         signup: {
+          id: '',
           inProgress: false,
           successMessage: '',
           errorMessage: ''

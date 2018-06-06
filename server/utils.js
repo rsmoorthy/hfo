@@ -23,6 +23,15 @@ const getLoginUser = async req => {
   return resp
 }
 
+const promiseTo = async promise => {
+  var err
+  let data = await promise.catch(e => {
+    err = e
+  })
+  return [err, data]
+}
+
 module.exports = {
-  getLoginUser
+  getLoginUser,
+  promiseTo
 }

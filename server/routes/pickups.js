@@ -74,7 +74,7 @@ router.put('/:id', async function(req, res, next) {
     if (ret) inp.passengerId = ret._id
   }
 
-  ret = await Pickups.findOneAndUpdate(id, inp).exec()
+  ret = await Pickups.findByIdAndUpdate(id, inp).exec()
   if (ret) return res.json({ status: 'ok' })
   res.json({ status: 'error', message: 'Unable to update the record' })
 })
@@ -87,7 +87,7 @@ router.put('/complete/:id', async function(req, res, next) {
 
   var upd = { receiverCompleted: new Date(), completed: 'Yes' }
 
-  ret = await Pickups.findOneAndUpdate(id, upd).exec()
+  ret = await Pickups.findByIdAndUpdate(id, upd).exec()
   if (ret) return res.json({ status: 'ok' })
   res.json({ status: 'error', message: 'Unable to complete' })
 })

@@ -4,6 +4,7 @@
   "private": true,
   "devDependencies": {
     "babel-eslint": "^8.2.3",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-config-standard": "^11.0.0",
@@ -14,12 +15,14 @@
     "eslint-plugin-react": "^7.8.2",
     "eslint-plugin-standard": "^3.1.0",
     "jest-expo": "~27.0.0",
+    "react-native-dotenv": "^0.1.1",
     "react-native-scripts": "1.14.0",
     "react-test-renderer": "16.3.1"
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
   "scripts": {
-    "start": "react-native-scripts start",
+    "start": "ENVFILE='.env.dev' react-native-scripts start",
+    "prodstart": "ENVFILE='.env.prod' react-native-scripts start",
     "eject": "react-native-scripts eject",
     "android": "react-native-scripts android",
     "ios": "react-native-scripts ios",
@@ -39,6 +42,8 @@
     "ramda": "^0.25.0",
     "react": "16.3.1",
     "react-native": "~0.55.2",
+    "react-native-config": "^0.11.5",
+    "react-native-star-rating": "^1.0.9",
     "react-native-status-bar-height": "^2.0.0",
     "react-navigation": "^2.0.1",
     "react-redux": "^5.0.7",
