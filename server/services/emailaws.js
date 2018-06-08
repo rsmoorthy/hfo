@@ -27,8 +27,9 @@ export const sendEmail = async email => {
 
   let err = null
   let ret = await transporter.sendMail(params).catch(e => {
-    err = e
+    err = e.message
   })
+  console.log('in emailaws sendEmail', ret, err)
   return [err, ret]
 }
 

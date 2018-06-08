@@ -22,7 +22,8 @@ const initialState = {
     email: '',
     mobile: '',
     role: '',
-    error: ''
+    error: '',
+    photo: ''
   },
   meta: {
     screenOpacity: 1,
@@ -78,6 +79,7 @@ export default (state = initialState, action) => {
       return {
         ...state,
         signup: {
+          ...state.signup,
           inProgress: true,
           successMessage: '',
           errorMessage: ''
@@ -109,7 +111,6 @@ export default (state = initialState, action) => {
       }
 
     case 'SIGNUP_FAILURE':
-      console.log('signup failure', action, state.signup.id)
       return {
         ...state,
         signup: {
@@ -121,11 +122,12 @@ export default (state = initialState, action) => {
         }
       }
 
-    case 'RESET_SIGNUP':
+    case 'SIGNUP_RESET':
       return {
         ...state,
         signup: {
           id: '',
+          needAuthCode: false,
           inProgress: false,
           successMessage: '',
           errorMessage: ''
@@ -153,6 +155,7 @@ export default (state = initialState, action) => {
           email: action.value.email,
           mobile: action.value.mobile,
           role: action.value.role,
+          photo: action.value.photo,
           error: ''
         }
       }
@@ -169,7 +172,17 @@ export default (state = initialState, action) => {
           email: '',
           mobile: '',
           role: '',
+          photo: '',
           error: action.type === 'LOGIN_FAILURE' ? action.message : ''
+        }
+      }
+
+    case 'UPDATE_LOGIN_DATA':
+      return {
+        ...state,
+        login: {
+          ...state.login,
+          photo: action.data.photo
         }
       }
 
