@@ -52,8 +52,8 @@ class Login extends Component {
     super(props)
     this.state = {
       value: {
-        email: 'rsmoorthy@gmail.com',
-        password: 'rsm123'
+        email: '',
+        password: ''
       }
     }
   }
@@ -106,7 +106,7 @@ class Login extends Component {
         {/* <Text style={{ fontFamily: 'serif', fontSize: 32, color: 'white' }}>HFO</Text> */}
         <Image
           style={{ alignSelf: 'stretch', flex: 0.2, height: undefined, width: undefined }}
-          source={require('../assets/logo_white.png')}
+          source={require('../assets/icon.png')}
           resizeMode="contain"
         />
         <View style={{ marginTop: 50, width: '80%' }}>

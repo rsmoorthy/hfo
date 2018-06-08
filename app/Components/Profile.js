@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, Image, Dimensions, FlatList } from 'react-native'
+import { View, Text, StyleSheet, Image, Dimensions, FlatList, TouchableOpacity, TouchableHighlight } from 'react-native'
 import moment from 'moment'
 
 import {
@@ -215,6 +215,10 @@ class Profile extends Component {
 
   render() {
     const opacity = this.props.meta.screenOpacity
+    const photo =
+      this.props.login.photo && this.props.login.photo.length
+        ? { uri: this.props.login.photo }
+        : require('../assets/user1.jpg')
     return (
       <Container style={{ flex: 1, backgroundColor: '#EAE8EF', opacity: opacity }}>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
@@ -237,7 +241,9 @@ class Profile extends Component {
             <View style={{ flexDirection: 'row' }}>
               {/** User photo takes 1/3rd of view horizontally **/}
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Image source={require('../assets/user1.jpg')} style={{ width: 75, height: 75, borderRadius: 37.5 }} />
+                <TouchableOpacity onPress={() => this.props.navigation.push('GetPhotoModal')}>
+                  <Image source={photo} style={{ width: 75, height: 75, borderRadius: 37.5 }} />
+                </TouchableOpacity>
               </View>
 
               {/** User Stats take 2/3rd of view horizontally **/}
