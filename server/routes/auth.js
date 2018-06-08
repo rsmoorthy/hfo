@@ -1,4 +1,3 @@
-import { sendEmail } from '../services/emailaws'
 var express = require('express')
 var router = express.Router()
 var axios = require('axios')
@@ -6,8 +5,32 @@ var rp = require('request-promise-native')
 var Users = require('../models/Users')
 var R = require('ramda')
 var crypto = require('crypto')
+var ejs = require('ejs')
+var path = require('path')
+var emailaws = require('../services/emailaws')
 
 var cache = { time: 0, data: [] }
+
+const sendNewAccountSMS = async ({ id, name, mobile, authCode }) => {
+  return ['SMS Not configured yet']
+}
+
+const sendNewAccountEmail = async ({ id, name, email, authCode }) => {
+  let html = await ejs.renderFile(path.join(__dirname, '../templates/email_newaccount.ejs'), {
+    id,
+    name,
+    authCode,
+    email
+  })
+
+  let [err, out] = await emailaws.sendEmail({
+    from: 'support@hfoinc.in',
+    to: email,
+    subject: 'Please verify your HFO account ',
+    html: html
+  })
+  return [err, out]
+}
 
 /* Signup */
 router.post('/signup', async function(req, res, next) {
@@ -42,13 +65,22 @@ router.post('/signup', async function(req, res, next) {
 
   if (ret) {
     // update the db
-    await Users.findByIdAndUpdate(ret._id, inp)
+    ret = await Users.findByIdAndUpdate(ret._id, inp)
   } else {
     // insert to  db
     var newuser = new Users(inp)
     ret = await newuser.save()
   }
   if (!ret) return res.json({ status: 'error', message: 'Unable to save to database' })
+
+  if (ret.email) {
+    let [err, mailret] = await sendNewAccountEmail({ ...ret._doc, id: ret._id, authCode: inp.authCode })
+    if (err) return res.json({ status: 'error', message: 'Unable to send email: ' + err })
+  }
+  if (!ret.email && ret.mobile) {
+    let [err, mailret] = await sendNewAccountSMS({ ...ret._doc, id: ret._id, authCode: inp.authCode })
+    if (err) return res.json({ status: 'error', message: 'Unable to send SMS: ' + err })
+  }
   return res.json({
     status: 'ok',
     value: {
@@ -63,10 +95,35 @@ router.post('/signupverify', async function(req, res, next) {
   var ret
   ret = await Users.findOne({ _id: inp.id }).exec()
   if (ret === null) return res.json({ status: 'error', message: 'Invalid id specified' })
-  if (ret.authCode !== inp.otp) return res.json({ status: 'error', message: 'Invalid OTP specified' })
+  if (ret.authCode !== inp.otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
 
   await Users.findByIdAndUpdate(inp.id, { authCode: '' })
   return res.json({ status: 'ok', message: ret._id })
+})
+
+/* SignupVerify web */
+router.get('/signupverify/:id/:otp', async function(req, res, next) {
+  var inp = req.body
+  var id = req.params.id
+  var otp = req.params.otp
+  var ret
+
+  ret = await Users.findOne({ _id: id }).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid id specified' })
+  if (ret.authCode !== otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
+
+  await Users.findByIdAndUpdate(id, { authCode: '' })
+  return res.send('<h2> Thank you ' + ret.name + '</h2> <h3>Signup Successful. Please login from the App</h3>')
+})
+
+/* SignupVerify check */
+router.post('/signupcheck', async function(req, res, next) {
+  var inp = req.body
+  var ret
+
+  ret = await Users.findOne({ _id: inp.id }).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid id specified' })
+  return res.json({ status: 'ok', value: ret.authCode.length })
 })
 
 /* Login */

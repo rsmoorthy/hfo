@@ -56,7 +56,7 @@ const options = {
 
 const UserOTP = t.struct({
   id: t.String,
-  otp: t.String
+  otp: t.Number
 })
 
 class Signup extends Component {
@@ -75,6 +75,7 @@ class Signup extends Component {
         otp: ''
       }
     }
+    this.timer1 = null
   }
 
   static navigationOptions = {
@@ -91,17 +92,32 @@ class Signup extends Component {
 
   handleSubmit2 = () => {
     const value2 = this._form2.getValue()
-    console.log('submit2', value2, this.props.signup.id, this.state.value2)
     if (value2) {
       this.state.value2 = value2
       this.props.doSignupVerify(value2)
     }
   }
 
+  componentDidUpdate() {
+    if (this.props.signup.needAuthCode && this.state.value2.id && !this.timer1) {
+      this.timer1 = setInterval(() => {
+        this.props.signupCheck(this.state.value2.id)
+      }, 5000)
+    }
+    if (this.props.signup.needAuthCode === false && this.timer1) clearInterval(this.timer1)
+  }
+
+  componentWillUnmount() {
+    if (this.timer1) clearInterval(this.timer1)
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (props.signup.id && (state.value2.id === undefined || state.value2.id === ''))
+      return { value2: { ...state.value2, id: props.signup.id } }
+    return null
+  }
+
   render() {
-    console.log('id in signup', this.state.value2.id, this.props.signup.id)
-    if (this.props.signup.id && this.state.value2.id === undefined)
-      this.setState({ value2: { ...this.state.value2, id: this.props.signup.id } })
     return (
       <Container>
         <Header tyle={{ paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
@@ -125,14 +141,26 @@ class Signup extends Component {
                   <Form ref={c => (this._form2 = c)} type={UserOTP} value={this.state.value2} options={options} />
                   <Button title="Submit OTP" onPress={this.handleSubmit2} />
                   <Text style={{ marginTop: 8 }} />
-                  <Button title="Go back to Login page" onPress={() => this.props.navigation.navigate('Login')} />
+                  <Button
+                    title="Go back to Login page"
+                    onPress={() => {
+                      this.props.resetSignup()
+                      this.props.navigation.navigate('Login')
+                    }}
+                  />
                 </View>
               ) : (
                 <View>
                   <Form ref={c => (this._form = c)} type={User} value={this.state.value} options={options} />
                   <Button title="Sign Up!" onPress={this.handleSubmit} />
                   <Text style={{ marginTop: 8 }} />
-                  <Button title="Go back to Login page" onPress={() => this.props.navigation.navigate('Login')} />
+                  <Button
+                    title="Go back to Login page"
+                    onPress={() => {
+                      this.props.resetSignup()
+                      this.props.navigation.navigate('Login')
+                    }}
+                  />
                 </View>
               ))
             )}

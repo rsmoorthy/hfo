@@ -17,6 +17,7 @@ import PickupForm from './PickupForm'
 import PickupList from './PickupList'
 import CameraView from './CameraView'
 import ModalScreen from './ModalScreen'
+import GetPhotoModal from './GetPhotoModal'
 import DisplayTab from './AppTabNavigator/DisplayTab'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
@@ -103,6 +104,11 @@ class MainScreen extends Component {
   // }
   static navigationOptions = {
     header: null
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextProps.login.role === this.props.login.role) return false
+    return true
   }
 
   render() {
@@ -206,7 +212,8 @@ class MainScreen extends Component {
     const RootNavigator = createStackNavigator(
       {
         Main: MyAppNavigator,
-        Modal: ModalScreen
+        Modal: ModalScreen,
+        GetPhotoModal: GetPhotoModal
       },
       {
         mode: 'modal',

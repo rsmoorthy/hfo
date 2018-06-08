@@ -114,14 +114,33 @@ export const doLogout = () => ({
 })
 
 export const resetSignup = () => ({
-  type: 'RESET_SIGNUP'
+  type: 'SIGNUP_RESET'
 })
+
+export const signupCheck = id => {
+  return (dispatch, getState) => {
+    axios
+      .post(host + '/auth/signupcheck', { id: id })
+      .then(response => {
+        if (response.data.status === 'ok' && response.data.value === 0)
+          dispatch({ type: 'SIGNUP_SUCCESS', verify: true })
+      })
+      .catch()
+  }
+}
 
 export const doUpdateUser = value => {
   return (dispatch, getState) => {
+    const state = getState()
     dispatch({ type: 'UPDATE_USER_RESET' })
-    axios
-      .post(host + '/users/update/' + value._id, value)
+    axios({
+      method: 'POST',
+      url: host + '/users/update/' + value._id,
+      data: value,
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
       .then(response => {
         if (response.data.status === 'ok') {
           dispatch({ type: 'UPDATE_USER_SUCCESS', user: value })
@@ -132,6 +151,26 @@ export const doUpdateUser = value => {
       .catch(error => {
         dispatch({ type: 'UPDATE_USER_FAILURE', message: error.message })
       })
+  }
+}
+
+export const doUpdateLoginData = value => {
+  return (dispatch, getState) => {
+    const state = getState()
+    axios({
+      method: 'POST',
+      url: host + '/users/update/' + value.id,
+      data: value,
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'UPDATE_LOGIN_DATA', data: value })
+        }
+      })
+      .catch()
   }
 }
 
