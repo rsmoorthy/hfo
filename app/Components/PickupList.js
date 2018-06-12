@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, TouchableHighlight } from 'react-native'
 import moment from 'moment'
 
 import {
@@ -29,6 +29,8 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 class PickupList extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+    drawerName: 'Pickups',
     header: null
   }
 
@@ -37,14 +39,18 @@ class PickupList extends Component {
     this.props.getPickups()
   }
 
+  isRefreshing() {
+    if (this.props.meta.pickupListInProgress === undefined) return false
+    return this.props.meta.pickupListInProgress
+  }
+
   render() {
-    const pickups = this.props.pickups
     return (
       <Container>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="menu" />
+              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
           </Left>
           <Body>
@@ -63,6 +69,38 @@ class PickupList extends Component {
           </Right>
         </Header>
         <Content>
+          <View style={{ flex: 1, backgroundColor: '#EAE8EF' }}>
+            <FlatList
+              data={this.props.pickups}
+              refreshing={this.isRefreshing()}
+              onRefresh={() => this.props.getPickups()}
+              keyExtractor={(item, index) => item._id}
+              ListEmptyComponent={() => (
+                <View>
+                  <Text style={{ color: 'gray', fontStyle: 'italic' }}>No Pickup List</Text>
+                </View>
+              )}
+              renderItem={({ item, index, separators }) => (
+                <TouchableHighlight
+                  onPress={() => this.props.navigation.push('PickupForm', { pickup: item })}
+                  onShowUnderlay={separators.highlight}
+                  onHideUnderlay={separators.unhighlight}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      paddingTop: 10,
+                      marginTop: 1,
+                      marginBottom: 1,
+                      paddingBottom: 10,
+                      backgroundColor: index % 2 === 0 ? '#F8F8F8' : '#F8F8F8'
+                    }}>
+                    <Text style={{ height: 100 }}>One</Text>
+                  </View>
+                </TouchableHighlight>
+              )}
+            />
+          </View>
+          {/*
           <List>
             {pickups.length === 0 && (
               <ListItem>
@@ -107,6 +145,7 @@ class PickupList extends Component {
               </ListItem>
             ))}
           </List>
+            */}
         </Content>
       </Container>
     )

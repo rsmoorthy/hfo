@@ -36,7 +36,8 @@ var images = [
 
 class Profile extends Component {
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="person" style={{ color: tintColor }} />
+    tabBarIcon: ({ tintColor }) => <Icon name="person" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="person" style={{ color: tintColor }} />
   }
 
   constructor(props) {
@@ -223,7 +224,9 @@ class Profile extends Component {
       <Container style={{ flex: 1, backgroundColor: '#EAE8EF', opacity: opacity }}>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
-            <Icon name="menu" />
+            <Button transparent>
+              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
+            </Button>
           </Left>
           <Body>
             <Text style={{ fontSize: 20, color: 'white' }}>Profile History</Text>

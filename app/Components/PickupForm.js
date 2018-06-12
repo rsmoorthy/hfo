@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Alert } from 'react-native'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 import t from 'tcomb-form-native' // 0.6.9
@@ -18,15 +18,19 @@ import {
   ListItem,
   Button,
   Text,
+  Card,
+  CardItem,
   Badge
 } from 'native-base'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
 import R from 'ramda'
 const Form = t.form.Form
+// t.form.Form.templates = { ...t.form.Form.templates, select: require('../utils/select.android.js') }
 
 class PickupForm extends Component {
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
+    tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
     header: null
   }
 
@@ -85,14 +89,23 @@ class PickupForm extends Component {
           name: { hidden: false, editable: true },
           email: { hidden: false, editable: true },
           mobile: { hidden: false, editable: true },
+          airport: {
+            template: require('../utils/select.android')
+          },
+          receiverId: {
+            template: require('../utils/select.android')
+          },
           passengerId: {
+            template: require('../utils/select.android'),
             hidden: false,
             label: 'Existing User'
           },
           flight: {
-            help: 'Flight number in the format of XX NNN (like 6E 1234)'
+            autoCapitalize: 'characters',
+            help: 'Flight number in the format of XXNNN (like 6E1234)'
           },
           pickupDate: {
+            template: require('../utils/datepicker.android'),
             label: 'Pickup Date',
             mode: 'date',
             config: {
@@ -113,7 +126,7 @@ class PickupForm extends Component {
           name: { hidden: { $set: value.passengerId.length > 0 } },
           email: { hidden: { $set: value.passengerId.length > 0 } },
           mobile: { hidden: { $set: value.passengerId.length > 0 } },
-          passengerId: { hidden: { $set: value.name.length > 0 } }
+          passengerId: { hidden: { $set: value.name && value.name.length > 0 } }
         }
       })
       this.setState({ options: options })
@@ -125,7 +138,7 @@ class PickupForm extends Component {
         name: value.passengerId.length > 0,
         email: value.passengerId.length > 0,
         mobile: value.passengerId.length > 0,
-        passengerId: value.name.length > 0
+        passengerId: value.name && value.name.length > 0
       })
     })
   }
@@ -135,7 +148,17 @@ class PickupForm extends Component {
     if (value) {
       this.state.value = value
       if (value._id) this.props.doUpdatePickup(value)
-      else this.props.doAddPickup(value)
+      else
+        this.props.doAddPickup({
+          ...value,
+          callback: (err, message) => {
+            if (err) Alert.alert('Error in Flight check', err)
+            else {
+              Alert.alert('Flight check Success', message)
+              this.props.navigation.navigate('Pickups')
+            }
+          }
+        })
     }
   }
 
@@ -179,7 +202,7 @@ class PickupForm extends Component {
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
           </Left>
           <Body>
@@ -196,16 +219,27 @@ class PickupForm extends Component {
         </Header>
         <Content>
           <View style={styles.container}>
-            <Form
-              ref={c => (this._form = c)}
-              type={this.state.type}
-              value={this.state.value}
-              options={this.state.options}
-              onChange={this.onChange}
-            />
-            <Button info block title="Submit!" onPress={this.handleSubmit}>
-              <Text> Submit </Text>
-            </Button>
+            <Card>
+              <CardItem header bordered>
+                <Text>New Pickup Form</Text>
+              </CardItem>
+              <CardItem bordered>
+                <View style={{ width: '100%', alignSelf: 'stretch' }}>
+                  <Form
+                    ref={c => (this._form = c)}
+                    type={this.state.type}
+                    value={this.state.value}
+                    options={this.state.options}
+                    onChange={this.onChange}
+                  />
+                </View>
+              </CardItem>
+              <CardItem>
+                <Button info block title="Submit!" style={{ width: '100%' }} onPress={this.handleSubmit}>
+                  <Text> Submit </Text>
+                </Button>
+              </CardItem>
+            </Card>
             <Text style={{ color: 'red', fontSize: 22 }}>{this.props.meta.pickupError}</Text>
             <Text style={{ color: 'green', fontSize: 22 }}>{this.props.meta.pickupSuccess}</Text>
             <View style={{ height: 300 }}>
@@ -227,6 +261,7 @@ const styles = StyleSheet.create({
     marginLeft: 30,
     marginRight: 30,
     marginBottom: 30,
+    backgroundColor: 'white',
     justifyContent: 'center'
   }
 })

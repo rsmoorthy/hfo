@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, TouchableHighlight, Image, RefreshControl } from 'react-native'
 
 import {
   Container,
@@ -28,6 +28,7 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 class UserList extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
     header: null
   }
 
@@ -44,7 +45,7 @@ class UserList extends Component {
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="menu" />
+              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
           </Left>
           <Body>
@@ -59,29 +60,107 @@ class UserList extends Component {
             </Button>
           </Right>
         </Header>
-        <Content>
-          <List>
-            {users.map((user, index) => (
-              <ListItem key={index} onPress={() => this.props.navigation.push('UserForm', { user: user })}>
-                <Body>
-                  <View>
-                    <Text style={{ fontSize: 20, color: 'darkblue' }}>{user.name}</Text>
-                    <Text note>
-                      {user.email} {user.mobile}
-                    </Text>
+        <View style={{ flex: 1, backgroundColor: '#EAE8EF' }}>
+          <FlatList
+            data={this.props.users}
+            refreshing={this.props.meta.userListInProgress}
+            onRefresh={() => this.props.getUserList()}
+            keyExtractor={(item, index) => item._id}
+            renderItem={({ item, index, separators }) => (
+              <TouchableHighlight
+                onPress={() => this.props.navigation.push('UserForm', { user: item })}
+                onShowUnderlay={separators.highlight}
+                onHideUnderlay={separators.unhighlight}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    paddingTop: 10,
+                    marginTop: 1,
+                    marginBottom: 1,
+                    paddingBottom: 10,
+                    backgroundColor: index % 2 === 0 ? '#F8F8F8' : '#F8F8F8'
+                  }}>
+                  {/** User photo takes 1/3rd of view horizontally **/}
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
+                    <TouchableOpacity onPress={() => this.props.navigation.push('GetPhotoModal', { id: item._id })}>
+                      <Image
+                        source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
+                        style={{ width: 52, height: 52, borderRadius: 37.5 }}
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        borderColor: 'pink',
+                        borderWidth: 2,
+                        borderRadius: 5,
+                        marginTop: 5,
+                        paddingLeft: 5,
+                        paddingRight: 5,
+                        paddingTop: 2,
+                        alignItems: 'center',
+                        paddingBottom: 2
+                      }}>
+                      <Text style={{ fontSize: 13, color: 'black' }}>{item.role}</Text>
+                    </View>
                   </View>
-                </Body>
-                <Right>
-                  <Text>{user.role}</Text>
-                  <Icon name="arrow-forward" />
-                </Right>
-              </ListItem>
-            ))}
-          </List>
-          <Button danger small rounded onPress={() => this.props.getUserList()}>
-            <Text> Refresh </Text>
-          </Button>
-        </Content>
+
+                  <View style={{ flex: 3 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'flex-start',
+                        paddingTop: 0,
+                        justifyContent: 'space-around'
+                      }}>
+                      <Text
+                        style={{
+                          flex: 2,
+                          fontSize: 16,
+                          color: 'darkblue'
+                        }}>
+                        {item.name}
+                      </Text>
+                      <View style={{ flex: 2.5 }}>
+                        {item.email && (
+                          <View style={{ flexDirection: 'row' }}>
+                            <Icon name="ios-mail-outline" style={{ fontSize: 16 }} />
+                            <Text style={{ fontSize: 11, marginLeft: 5, color: 'green' }}>{item.email}</Text>
+                          </View>
+                        )}
+                        {item.mobile && (
+                          <View style={{ flexDirection: 'row' }}>
+                            <Icon name="ios-phone-portrait" style={{ fontSize: 16 }} />
+                            <Text style={{ fontSize: 11, marginLeft: 5, color: 'green' }}>{item.mobile}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View
+                      style={{
+                        paddingTop: 10,
+                        flexDirection: 'row',
+                        justifyContent: 'space-around',
+                        alignItems: 'flex-end'
+                      }}>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text>{item.role === 'Receiver' ? (item.rating ? item.rating : 'n/a') : 'n/a'}</Text>
+                        <Text style={{ fontSize: 10, color: 'grey' }}>Rating</Text>
+                      </View>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text>{item.totalPickups ? item.totalPickups : 0}</Text>
+                        <Text style={{ fontSize: 10, color: 'grey' }}>Pickups</Text>
+                      </View>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text>{item.lastSeen ? utils.lastSeen(item.lastSeen) : 'never'}</Text>
+                        <Text style={{ fontSize: 10, color: 'grey' }}>Last seen</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            )}
+          />
+        </View>
       </Container>
     )
   }

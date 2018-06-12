@@ -9,8 +9,14 @@ console.log('host', host, process.env.SERVER_IP, process.env)
 export const getCurrentFlights = () => {
   return (dispatch, getState) => {
     //  .get("http://139.59.30.14:3000/flights")
-    axios
-      .get(host + '/flights')
+    const state = getState()
+    axios({
+      method: 'GET',
+      url: host + '/flights',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
       .then(response => {
         dispatch({ type: 'CURRENT_FLIGHTS', flights: response.data })
       })
@@ -26,8 +32,15 @@ export const getCurrentFlights = () => {
 
 export const getUserList = () => {
   return (dispatch, getState) => {
-    axios
-      .get(host + '/users')
+    dispatch({ type: 'USER_LIST_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'GET',
+      url: host + '/users',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
       .then(response => {
         if (response.data.status === 'ok') dispatch({ type: 'USER_LIST', users: response.data.users })
         else dispatch({ type: 'USER_LIST', users: [] })
@@ -76,7 +89,6 @@ export const doLogin = value => {
     let state = getState()
     value = { ...value }
     value.expoToken = state.hfo.expoToken
-    console.log('doLogin', state.hfo.expoToken, value)
 
     axios
       .post(host + '/auth/login', value)
@@ -176,6 +188,7 @@ export const doUpdateLoginData = value => {
 
 export const getPickups = () => {
   return (dispatch, getState) => {
+    dispatch({ type: 'PICKUP_LIST_IN_PROGRESS' })
     const state = getState()
     axios({
       method: 'GET',
@@ -199,23 +212,30 @@ export const doAddPickup = value => {
     const state = getState()
     dispatch({ type: 'PICKUP_RESET' })
     const options = {}
-    // .post(host + '/pickups', { ...value, bookingAgentId: state.hfo.login.id })
+    const val = { ...value }
+    delete val.callback
+    // .post(host + '/pickups', { ...value, agentIdId: state.hfo.login.id })
     axios({
       method: 'POST',
       url: host + '/pickups',
       headers: {
         Authorization: 'token ' + state.hfo.login.token
       },
-      data: { ...value, bookingAgentId: state.hfo.login.id }
+      data: { ...val, agentIdId: state.hfo.login.id }
     })
       .then(response => {
         if (response.data.status === 'ok') {
           dispatch({ type: 'PICKUP_SUCCESS', user: value })
           setTimeout(() => dispatch({ type: 'PICKUP_RESET' }), 8000)
           getPickups()(dispatch, getState)
-        } else dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
+          if (value.callback) value.callback(null, response.data.message)
+        } else {
+          if (value.callback) value.callback(response.data.message)
+          dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
+        }
       })
       .catch(error => {
+        if (value.callback) value.callback(error.message)
         dispatch({ type: 'PICKUP_FAILURE', message: error.message })
       })
   }
@@ -227,7 +247,7 @@ export const doUpdatePickup = value => {
     const state = getState()
     dispatch({ type: 'PICKUP_RESET' })
     const options = {}
-    // .post(host + '/pickups', { ...value, bookingAgentId: state.hfo.login.id })
+    // .post(host + '/pickups', { ...value, agentIdId: state.hfo.login.id })
     axios({
       method: 'PUT',
       url: host + '/pickups/' + value._id,
@@ -255,7 +275,7 @@ export const doCompletePickup = value => {
     const state = getState()
     dispatch({ type: 'PICKUP_COMPLETE_RESET' })
     const options = {}
-    // .post(host + '/pickups', { ...value, bookingAgentId: state.hfo.login.id })
+    // .post(host + '/pickups', { ...value, agentIdId: state.hfo.login.id })
     axios({
       method: 'PUT',
       url: host + '/pickups/complete/' + value._id,

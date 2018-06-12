@@ -19,8 +19,32 @@ const getLoginUser = async req => {
     resp.mobile = ret.mobile
     resp.email = ret.email
     resp.role = ret.role
+    await Users.findByIdAndUpdate(resp.id, { lastSeen: new Date() })
   }
   return resp
+}
+
+// the mobile number or email id should not be repeated or reused
+const checkDuplicateUserRecord = async row => {
+  const compare = field => {
+    return rec =>
+      row[field].toString() === rec[field].toString()
+        ? row._id
+          ? row._id.toString() !== rec._id.toString()
+          : true
+        : false
+  }
+  if (row.mobile) {
+    let ret2 = await Users.find({ mobile: row.mobile })
+    ret2 = R.filter(compare('mobile'), ret2 === null ? [] : ret2)
+    if (ret2.length) return ['Mobile number ' + row.mobile + ' already exist']
+  }
+  if (row.email) {
+    let ret2 = await Users.find({ email: row.email })
+    ret2 = R.filter(compare('email'), ret2 === null ? [] : ret2)
+    if (ret2.length) return ['Email ' + row.email + ' already exist']
+  }
+  return null
 }
 
 const promiseTo = async promise => {
@@ -33,5 +57,6 @@ const promiseTo = async promise => {
 
 module.exports = {
   getLoginUser,
+  checkDuplicateUserRecord,
   promiseTo
 }

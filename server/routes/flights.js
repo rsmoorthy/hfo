@@ -3,11 +3,15 @@ var router = express.Router()
 var axios = require('axios')
 var rp = require('request-promise-native')
 var R = require('ramda')
+var utils = require('../utils')
 
 var cache = { time: 0, data: [] }
 
 /* GET ALL Flights */
-router.get('/', function(req, res, next) {
+router.get('/', async function(req, res, next) {
+  var user = await utils.getLoginUser(req)
+  if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
+
   console.log(cache.time)
   if (new Date().getTime() - cache.time < 6000 * 1000) {
     console.log('returning cached date')

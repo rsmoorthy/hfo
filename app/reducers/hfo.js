@@ -23,10 +23,15 @@ const initialState = {
     mobile: '',
     role: '',
     error: '',
-    photo: ''
+    photo: '',
+    rating: null,
+    lastSeen: null,
+    pickups: 0
   },
   meta: {
     screenOpacity: 1,
+    userListInProgress: false,
+    pickupListInProgress: false,
     inProgress: false,
     updateUserError: '',
     updateUserSuccess: '',
@@ -72,7 +77,20 @@ export default (state = initialState, action) => {
         ...state,
         users: action.users,
         passengers: getUserListByRole('Passenger', action.users),
-        receivers: getUserListByRole('Receiver', action.users)
+        receivers: getUserListByRole('Receiver', action.users),
+        meta: {
+          ...state.meta,
+          userListInProgress: false
+        }
+      }
+
+    case 'USER_LIST_IN_PROGRESS':
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          userListInProgress: true
+        }
       }
 
     case 'SIGNUP_IN_PROGRESS':
@@ -201,7 +219,20 @@ export default (state = initialState, action) => {
     case 'PICKUP_LIST':
       return {
         ...state,
-        pickups: action.pickups
+        pickups: action.pickups,
+        meta: {
+          ...state.meta,
+          pickupListInProgress: false
+        }
+      }
+
+    case 'PICKUP_LIST_IN_PROGRESS':
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          pickupListInProgress: true
+        }
       }
 
     case 'PICKUP_SUCCESS':
@@ -211,6 +242,7 @@ export default (state = initialState, action) => {
         ...state,
         meta: {
           ...state.meta,
+          pickupListInProgress: false,
           pickupSuccess: action.type === 'PICKUP_SUCCESS' ? 'Updated Successfully' : '',
           pickupError: action.type === 'PICKUP_FAILURE' ? action.message : ''
         }

@@ -148,6 +148,7 @@ router.post('/login', async function(req, res, next) {
     await Users.findByIdAndUpdate(ret._id, { expoToken: inp.expoToken })
   }
 
+  await Users.findByIdAndUpdate(ret._id, { lastSeen: new Date() })
   return res.json({
     status: 'ok',
     value: {
@@ -180,6 +181,8 @@ router.post('/googlesignin', async function(req, res, next) {
     }
     let out = await Users.findByIdAndUpdate(ret._id, upd).catch(console.log)
   }
+
+  await Users.findByIdAndUpdate(ret._id, { lastSeen: new Date() })
 
   return res.json({
     status: 'ok',

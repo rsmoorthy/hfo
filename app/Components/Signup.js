@@ -18,7 +18,7 @@ const User = t.struct({
     Receiver: 'Receiver',
     Passenger: 'Passenger',
     Admin: 'Admin',
-    BookingAgent: 'BookingAgent',
+    Agent: 'Agent',
     Display: 'Display'
   }),
   terms: t.Boolean
@@ -194,6 +194,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 5,
     padding: 20,
-    backgroundColor: '#EAE8EF'
+    backgroundColor: 'white'
   }
 })

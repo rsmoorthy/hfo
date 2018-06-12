@@ -10,7 +10,9 @@ var UsersSchema = new mongoose.Schema({
   authCode: String,
   accessToken: String,
   photo: String,
-  role: { type: String, enum: ['Admin', 'Passenger', 'Receiver', 'BookingAgent', 'Display'] },
+  rating: Number,
+  pickups: Number,
+  role: { type: String, enum: ['Admin', 'Passenger', 'Receiver', 'Agent', 'Display'] },
   created_at: { type: Date },
   updated_at: { type: Date, default: Date.now }
 })

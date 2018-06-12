@@ -22,7 +22,14 @@ export default class App extends React.Component {
   async componentWillMount() {
     await Font.loadAsync({
       Roboto: require('native-base/Fonts/Roboto.ttf'),
-      Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf')
+      Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
+      arial: require('./assets/fonts/arial.ttf'),
+      arial_bold: require('./assets/fonts/arialbd.ttf'),
+      arial_bold_italic: require('./assets/fonts/arialbi.ttf'),
+      arial_italic: require('./assets/fonts/ariali.ttf'),
+      georgia: require('./assets/fonts/georgia.ttf'),
+      georgia_bold: require('./assets/fonts/georgiab.ttf'),
+      georgia_itlaic: require('./assets/fonts/georgiai.ttf')
     })
     AppState.addEventListener('change', this.handleAppState)
     this.setState({ loading: false })

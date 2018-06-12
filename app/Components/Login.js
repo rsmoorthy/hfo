@@ -25,7 +25,7 @@ const LoginForm = t.struct({
 })
 
 const myStyles = {
-  ...utils.formStyles,
+  ...utils.materialFormStyles,
   textbox: {
     normal: { color: 'white' }
   }

@@ -43,34 +43,57 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
   var ad = typeof arrivalDate === 'object' ? arrivalDate : moment(arrivalDate)
 
   // curl -v  -X GET "https://api.flightstats.com/flex/schedules/rest/v1/json/flight/6E/347/arriving/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&extendedOptions=includeNewFields"
-  var schedule = await rp.get({
-    uri:
-      'https://api.flightstats.com/flex/schedules/rest/v1/json/flight/' +
-      flight.substr(0, 2) +
-      '/' +
-      flight.substr(2) +
-      '/arriving/' +
-      ad.year() +
-      '/' +
-      (ad.month() + 1) +
-      '/' +
-      ad.date(),
-    qs: {
-      appId: config.appId,
-      appKey: config.appKey,
-      extendedOptions: 'includeNewFields'
-    }
-  })
+  var schedule = await rp
+    .get({
+      uri:
+        'https://api.flightstats.com/flex/schedules/rest/v1/json/flight/' +
+        flight.substr(0, 2) +
+        '/' +
+        flight.substr(2) +
+        '/arriving/' +
+        ad.year() +
+        '/' +
+        (ad.month() + 1) +
+        '/' +
+        ad.date(),
+      qs: {
+        appId: config.appId,
+        appKey: config.appKey,
+        extendedOptions: 'includeNewFields'
+      }
+    })
+    .catch(err => [err.message])
 
-  schedule = JSON.parse(schedule)
-  var fl = schedule.scheduledFlights[0]
-  return {
-    flight: fl.carrierFsCode + fl.flightNumber,
-    fromCode: fl.departureAirportFsCode,
-    toCode: fl.arrivalAirportFsCode,
-    scheduledDeparture: moment(fl.departureTime),
-    scheduledArrival: moment(fl.arrivalTime)
+  try {
+    schedule = JSON.parse(schedule)
+    if (schedule.scheduledFlights.length === 0) return ['No flight ' + flight + ' on ' + ad.format('DD MMM YYYY')]
+  } catch (err) {
+    return ['JSON error ' + err]
   }
+  var fl = schedule.scheduledFlights[0]
+  return [
+    null,
+    {
+      flight: fl.carrierFsCode + fl.flightNumber,
+      fromCode: fl.departureAirportFsCode,
+      toCode: fl.arrivalAirportFsCode,
+      scheduledDeparture: moment(fl.departureTime),
+      scheduledArrival: moment(fl.arrivalTime),
+      message:
+        'Flight ' +
+        fl.carrierFsCode +
+        fl.flightNumber +
+        ' from ' +
+        fl.departureAirportFsCode +
+        ' ( ' +
+        moment(fl.departureTime).format('HH:mm') +
+        ' ) to ' +
+        fl.arrivalAirportFsCode +
+        ' ( ' +
+        moment(fl.arrivalTime).format('HH:mm') +
+        ' )'
+    }
+  ]
 }
 
 export const getFlightStatus = async (flight, arrivalDate = moment()) => {

@@ -48,7 +48,19 @@ class GetPhotoModal extends Component {
     this.props.setOpacity(1.0)
   }
 
-  pickImage = async () => {
+  imageUpdate = (id, result) => {
+    if (result.cancelled) return
+    this.setState({ image: result.uri })
+    if (id) {
+      this.props.doUpdateUser({ _id: id, id: id, photo: 'data:image/jpeg;base64,' + result.base64 })
+    } else
+      this.props.doUpdateLoginData({
+        id: this.props.login.id,
+        photo: 'data:image/jpeg;base64,' + result.base64
+      })
+  }
+
+  pickImage = async id => {
     let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       quality: 0.9,
@@ -56,44 +68,35 @@ class GetPhotoModal extends Component {
       aspect: [1, 1]
     })
 
-    if (!result.cancelled) {
-      this.setState({ image: result.uri })
-      this.props.doUpdateLoginData({
-        id: this.props.login.id,
-        photo: 'data:image/jpeg;base64,' + result.base64
-      })
-    }
+    this.imageUpdate(id, result)
   }
 
-  openCamera = async () => {
+  openCamera = async id => {
     let result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 0.5,
       base64: true,
       aspect: [1, 1]
     })
-
-    if (!result.cancelled) {
-      this.setState({ image: result.uri })
-      this.props.doUpdateLoginData({
-        id: this.props.login.id,
-        photo: 'data:image/jpeg;base64,' + result.base64
-      })
-    }
+    this.imageUpdate(id, result)
   }
 
   render() {
     let { image } = this.state
+    const id = this.props.navigation.getParam('id', null)
 
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '60%', borderRadius: 8, borderWidth: 1 }}>
           <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
           <View style={{ padding: 20 }}>
-            <Button style={{ alignSelf: 'stretch', marginBottom: 20 }} title="From Gallery" onPress={this.pickImage}>
+            <Button
+              style={{ alignSelf: 'stretch', marginBottom: 20 }}
+              title="From Gallery"
+              onPress={() => this.pickImage(id)}>
               <Text>From Gallery</Text>
             </Button>
-            <Button style={{ alignSelf: 'stretch', marginBottom: 20 }} onPress={this.openCamera}>
+            <Button style={{ alignSelf: 'stretch', marginBottom: 20 }} onPress={() => this.openCamera(id)}>
               <Text>Take Picture (Camera)</Text>
             </Button>
             {image && <Image source={{ uri: image }} style={{ width: 80, height: 80 }} />}

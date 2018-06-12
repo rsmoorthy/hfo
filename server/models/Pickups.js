@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 
 var PickupsSchema = new mongoose.Schema({
-  bookingAgentId: String,
+  agentId: String,
   passengerId: String,
   receiverId: String,
   sponsoredBy: String,
@@ -11,10 +11,10 @@ var PickupsSchema = new mongoose.Schema({
   airport: String,
   flight: String,
   pickupDate: Date,
-  pickupTime: Date,
   completed: String,
   receiverCompleted: Date,
   passengerCompleted: Date,
+  status: { type: String, enum: ['New', 'Assigned', 'Completed'] },
   updated_at: { type: Date, default: Date.now }
 })
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, Button, StyleSheet, Platform, ActivityIndicator, StatusBar, Dimensions } from 'react-native'
+import { View, ScrollView, Image, StyleSheet, Platform, ActivityIndicator, StatusBar, Dimensions } from 'react-native'
 
 import Login from './Login'
 import PassengerHome from './PassengerHome'
@@ -24,6 +24,9 @@ import * as utils from '../utils'
 import registerForPushNotifications from '../services/notifications'
 
 import {
+  DrawerItems,
+  DrawerActions,
+  SafeAreaView,
   TabNavigator,
   createStackNavigator,
   createDrawerNavigator,
@@ -31,11 +34,12 @@ import {
   createBottomTabNavigator,
   createSwitchNavigator
 } from 'react-navigation'
-import { Icon } from 'native-base'
+import { Icon, Button, Text } from 'native-base'
 import { Font, AppLoading, Expo, ScreenOrientation, Notifications } from 'expo'
 import NavigatorService from '../services/navigator'
 
 ScreenOrientation.allow(ScreenOrientation.Orientation.ALL)
+
 const navigationOptions = {
   animationEnabled: true,
   swipeEnabled: true,
@@ -52,7 +56,31 @@ const navigationOptions = {
     inactiveTintColor: '#000000', // '#d1cece',
     showLabel: false,
     showIcon: true
-  }
+  },
+  // drawerBackgroundColor: '#0094d7',
+  drawerWidth: 250,
+  contentComponent: connect(null, utils.mapDispatchToProps)(props => (
+    <ScrollView>
+      <View
+        style={{ flex: 1, height: 120, backgroundColor: '#0094d7', alignItems: 'center', justifyContent: 'center' }}>
+        <Image
+          style={{ alignSelf: 'stretch', flex: 0.5, height: undefined, width: undefined }}
+          source={require('../assets/icon.png')}
+          resizeMode="contain"
+        />
+      </View>
+      {/* <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+        <Button transparent small danger onPress={() => props.navigation.dispatch(DrawerActions.closeDrawer())}>
+          <Icon name="ios-close-circle" />
+        </Button>
+      </View> */}
+      <DrawerItems {...props} />
+      <Button small warning title="Logout" onPress={props.doLogout} style={{ marginBottom: 10 }}>
+        <Icon name="ios-log-out" onPress={props.doLogout} />
+        <Text>Logout</Text>
+      </Button>
+    </ScrollView>
+  ))
 }
 
 function forVertical(props) {
@@ -80,9 +108,11 @@ class MainScreen extends Component {
 
   async componentDidMount() {
     Dimensions.addEventListener('change', this.onLayout.bind(this))
-    let expoToken = await registerForPushNotifications()
-    console.log('setting expo token', expoToken)
-    this.props.setExpoToken(expoToken)
+    let expoToken = await registerForPushNotifications().catch(err => console.log('expotoken', err.message))
+    if (expoToken) {
+      console.log('setting expo token', expoToken)
+      this.props.setExpoToken(expoToken)
+    }
     this._notificationSubscription = Notifications.addListener(this._handleNotification)
   }
 
@@ -123,12 +153,13 @@ class MainScreen extends Component {
     )
     let userStack
     if (this.props.login.role === 'Receiver') {
-      userStack = createTabNavigator(
+      userStack = createDrawerNavigator(
         {
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
             }
           },
           FlightArrivals: FlightArrivals,
@@ -137,8 +168,8 @@ class MainScreen extends Component {
         },
         navigationOptions
       )
-    } else if (this.props.login.role === 'BookingAgent') {
-      userStack = createTabNavigator(
+    } else if (this.props.login.role === 'Agent') {
+      userStack = createDrawerNavigator(
         {
           Pickups: {
             screen: pickupStack,
@@ -153,7 +184,7 @@ class MainScreen extends Component {
         navigationOptions
       )
     } else if (this.props.login.role === 'Passenger') {
-      userStack = createTabNavigator(
+      userStack = createDrawerNavigator(
         {
           PassengerHome: PassengerHome,
           Profile: Profile
@@ -170,26 +201,29 @@ class MainScreen extends Component {
         }
       }
       console.log(noptions)
-      userStack = createTabNavigator(
+      userStack = createDrawerNavigator(
         {
           DisplayList: DisplayList
         },
         noptions
       )
     } else if (this.props.login.role === 'Admin') {
-      userStack = createTabNavigator(
+      userStack = createDrawerNavigator(
         {
+          'New Pickup': PickupForm,
           Users: {
             screen: adminUsersStack,
             navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />
             }
           },
           Profile: Profile,
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
             }
           },
           CameraView: CameraView,
