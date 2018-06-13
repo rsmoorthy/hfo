@@ -39,6 +39,12 @@ const extractFlightData = flights => {
   return result
 }
 
+const getAirportData = (airports, key, airportCode) => {
+  let airport = R.filter(R.propEq('fs', airportCode), airports)
+  if (airport.length === 1) return airport[0][key]
+  return ''
+}
+
 export const getSchedule = async (flight, arrivalDate = moment()) => {
   var ad = typeof arrivalDate === 'object' ? arrivalDate : moment(arrivalDate)
 
@@ -70,13 +76,36 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
   } catch (err) {
     return ['JSON error ' + err]
   }
-  var fl = schedule.scheduledFlights[0]
+  let flights = R.filter(val => val.arrivalAirportFsCode === 'BLR', schedule.scheduledFlights)
+  if (flights.length === 0) return ['No flight ' + flight + ' on ' + ad.format('DD MMM YYYY')]
+  var fl = flights[0]
+  var airports = schedule.appendix.airports
   return [
     null,
     {
       flight: fl.carrierFsCode + fl.flightNumber,
+      carrierName: schedule.appendix.airlines[0].name,
+      carrierICAO: schedule.appendix.airlines[0].icao,
       fromCode: fl.departureAirportFsCode,
       toCode: fl.arrivalAirportFsCode,
+      fromCity: getAirportData(airports, 'city', fl.departureAirportFsCode),
+      toCity: getAirportData(airports, 'city', fl.arrivalAirportFsCode),
+      fromAirport: getAirportData(airports, 'name', fl.departureAirportFsCode),
+      toAirport: getAirportData(airports, 'name', fl.arrivalAirportFsCode),
+      fromPosition: {
+        latitude: getAirportData(airports, 'latitude', fl.departureAirportFsCode),
+        longitude: getAirportData(airports, 'longitude', fl.departureAirportFsCode),
+        elevation: getAirportData(airports, 'elevationFeet', fl.departureAirportFsCode),
+        timezone: getAirportData(airports, 'timeZoneRegionName', fl.departureAirportFsCode),
+        utcOffset: getAirportData(airports, 'utcOffsetHours', fl.departureAirportFsCode)
+      },
+      toPosition: {
+        latitude: getAirportData(airports, 'latitude', fl.arrivalAirportFsCode),
+        longitude: getAirportData(airports, 'longitude', fl.arrivalAirportFsCode),
+        elevation: getAirportData(airports, 'elevationFeet', fl.arrivalAirportFsCode),
+        timezone: getAirportData(airports, 'timeZoneRegionName', fl.arrivalAirportFsCode),
+        utcOffset: getAirportData(airports, 'utcOffsetHours', fl.arrivalAirportFsCode)
+      },
       scheduledDeparture: moment(fl.departureTime),
       scheduledArrival: moment(fl.arrivalTime),
       message:

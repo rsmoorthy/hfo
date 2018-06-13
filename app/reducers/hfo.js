@@ -45,6 +45,18 @@ const initialState = {
   dummyData: {}
 }
 
+const updateRecordById = (records, row, id) => {
+  console.log('records', records)
+  console.log('row', row)
+  console.log('id', id)
+  let idx = records.findIndex(obj => obj[id] === row[id])
+  if (idx >= 0) {
+    return [...records.slice(0, idx), row, ...records.slice(idx + 1)]
+  } else {
+    return [...records, row]
+  }
+}
+
 const getUserListByRole = (role = 'Passenger', users) => {
   return R.pipe(
     R.filter(user => user.role === role),
@@ -219,7 +231,7 @@ export default (state = initialState, action) => {
     case 'PICKUP_LIST':
       return {
         ...state,
-        pickups: action.pickups,
+        pickups: action.id ? updateRecordById(state.pickups, action.pickup, '_id') : action.pickups,
         meta: {
           ...state.meta,
           pickupListInProgress: false

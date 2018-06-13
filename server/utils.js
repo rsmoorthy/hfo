@@ -6,6 +6,7 @@ var Pickups = require('./models/Pickups')
 var Users = require('./models/Users')
 var R = require('ramda')
 var crypto = require('crypto')
+var config = require('./config')['global']
 
 const getLoginUser = async req => {
   if (!('authorization' in req.headers)) return {}
@@ -19,6 +20,7 @@ const getLoginUser = async req => {
     resp.mobile = ret.mobile
     resp.email = ret.email
     resp.role = ret.role
+    resp.photo = getPhotoUrl(ret._id, ret.photo)
     await Users.findByIdAndUpdate(resp.id, { lastSeen: new Date() })
   }
   return resp
@@ -55,8 +57,15 @@ const promiseTo = async promise => {
   return [err, data]
 }
 
+const getPhotoUrl = (id, photo) => {
+  console.log(id, photo && photo.substr(0, 20))
+  if (photo && photo.length && photo.substr(0, 4) === 'data') return config.SERVER_IP + '/users/photo/' + id
+  return photo === undefined ? '' : photo
+}
+
 module.exports = {
   getLoginUser,
   checkDuplicateUserRecord,
-  promiseTo
+  promiseTo,
+  getPhotoUrl
 }

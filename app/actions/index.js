@@ -186,20 +186,25 @@ export const doUpdateLoginData = value => {
   }
 }
 
-export const getPickups = () => {
+export const getPickups = (id, callback) => {
   return (dispatch, getState) => {
     dispatch({ type: 'PICKUP_LIST_IN_PROGRESS' })
     const state = getState()
     axios({
       method: 'GET',
-      url: host + '/pickups',
+      url: host + '/pickups' + (id === undefined ? '' : '/' + id),
       headers: {
         Authorization: 'token ' + state.hfo.login.token
       }
     })
       .then(response => {
-        if (response.data.status === 'ok') dispatch({ type: 'PICKUP_LIST', pickups: response.data.pickups })
-        else dispatch({ type: 'PICKUP_LIST', pickups: [] })
+        if (response.data.status === 'ok' && id) {
+          if (callback) callback(response.data.pickup)
+          dispatch({ type: 'PICKUP_LIST', pickup: response.data.pickup, id: id })
+        } else if (response.data.status === 'ok') {
+          if (callback) callback(response.data.pickups)
+          dispatch({ type: 'PICKUP_LIST', pickups: response.data.pickups })
+        } else dispatch({ type: 'PICKUP_LIST', pickups: [], id: id })
       })
       .catch(error => {
         console.log('error.message', error.message)

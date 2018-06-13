@@ -26,14 +26,6 @@ import * as utils from '../utils'
 import CardComponent from './CardComponent'
 var { height, width } = Dimensions.get('window')
 
-var images = [
-  require('../assets/1.jpg'),
-  require('../assets/2.jpg'),
-  require('../assets/3.jpg'),
-  require('../assets/avatar1.png'),
-  require('../assets/7.jpg')
-]
-
 class Profile extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="person" style={{ color: tintColor }} />,
@@ -61,34 +53,8 @@ class Profile extends Component {
     }
   }
 
-  renderSectionOne() {
-    return images.map((image, index) => {
-      return (
-        <View
-          key={index}
-          style={[
-            { width: width / 3 },
-            { height: width / 3 },
-            { marginBottom: 2 },
-            index % 3 !== 0 ? { paddingLeft: 2 } : { paddingLeft: 0 }
-          ]}>
-          <Image
-            style={{
-              flex: 1,
-              alignSelf: 'stretch',
-              width: undefined,
-              height: undefined
-            }}
-            source={image}
-          />
-        </View>
-      )
-    })
-  }
-
   renderSection() {
     if (this.state.activeIndex === 0) {
-      // <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{this.renderSectionOne()}</View>
       return (
         <View>
           <List>
@@ -121,94 +87,21 @@ class Profile extends Component {
         </View>
       )
     } else if (this.state.activeIndex === 1) {
-      const pickups = [
-        {
-          passenger: 'Scott Smith',
-          destination: 'Bangalore',
-          date: 'April 20th 2018',
-          airport: 'Bangalore',
-          likes: 1,
-          receiver: 'Manish',
-          arrivalBay: 'A1',
-          time: '16:20'
-        },
-        {
-          passenger: 'Scott Smith',
-          destination: 'Hyderabad',
-          date: 'April 25th 2018',
-          airport: 'Hyderabad',
-          likes: 1,
-          receiver: 'Siddhiah',
-          arrivalBay: 'B1',
-          time: '11:20'
-        }
-      ]
-      return <View>{pickups.map((pickup, index) => <CardComponent pickup={pickup} key={index} />)}</View>
-    } else if (this.state.activeIndex === 2) {
-      const flights = [
-        { flight: '6E 702', note: 'New Delhi to Bangalore', arrivalTime: 'ETA 16:40' },
-        { flight: 'AI 501', note: 'Hyderabad to Bangalore', arrivalTime: 'Arrived at 16:20' },
-        { flight: 'SG 116', note: 'Mumbai to Bangalore', arrivalTime: 'Arrived 16:35. Taxiing' },
-        { flight: 'BA 562', note: 'London to Bangalore', arrivalTime: 'ETA 16:40 (Delayed)' }
-      ]
       return (
         <View>
-          <List>
-            {flights.map((flight, index) => (
-              <ListItem icon key={index}>
-                <Left>
-                  <Icon name="ios-plane" />
-                </Left>
-                <Body>
-                  <Text style={{ fontSize: 20, color: 'darkblue' }}>{flight.flight}</Text>
-                  <Text note>{flight.note}</Text>
-                </Body>
-                <Right>
-                  <Text>{flight.arrivalTime}</Text>
-                  <Icon name="arrow-forward" />
-                </Right>
-              </ListItem>
-            ))}
-          </List>
+          <Text>Dummy</Text>
+        </View>
+      )
+    } else if (this.state.activeIndex === 2) {
+      return (
+        <View>
+          <Text>Dummy</Text>
         </View>
       )
     } else if (this.state.activeIndex === 3) {
-      const arrivals = [
-        // { name: 'Alia Bhat', thumbnail: '1', flight: '6E 702', arrivalBay: 'A1', arrivalTime: 'Taxiing 16:40' },
-        // { name: 'Albert Einsteen', thumbnail: '2', flight: 'BA 007', arrivalBay: 'A2', arrivalTime: 'ETA 18:40' },
-        // { name: 'Vani', thumbnail: '3', flight: 'AI 007', arrivalBay: 'A1', arrivalTime: 'ETA 19:40' },
-        // { name: 'Tereasa', thumbnail: '4', flight: 'AI 007', arrivalBay: 'A1', arrivalTime: 'ETA 19:40' },
-        // { name: 'Shahrukh Khan', thumbnail: '7', flight: 'AI 007', arrivalBay: 'A1', arrivalTime: 'ETA 19:40' }
-      ]
-      const thumbnails = {
-        '1': require('../assets/1.jpg'),
-        '2': require('../assets/2.jpg'),
-        '3': require('../assets/3.jpg'),
-        '4': require('../assets/avatar1.png'),
-        '5': require('../assets/5.jpg'),
-        '6': require('../assets/6.jpg'),
-        '7': require('../assets/7.jpg')
-      }
       return (
         <View>
-          <List>
-            {arrivals.map((arr, index) => (
-              <ListItem avatar key={index}>
-                <Left>
-                  <Thumbnail source={thumbnails[arr.thumbnail]} />
-                </Left>
-                <Body>
-                  <Text style={{ fontSize: 20, color: 'darkblue' }}>{arr.name}</Text>
-                  <Text note>{arr.flight}</Text>
-                  <Text note>{arr.arrivalBay}</Text>
-                </Body>
-                <Right>
-                  <Text>{arr.arrivalTime}</Text>
-                  <Icon name="arrow-forward" />
-                </Right>
-              </ListItem>
-            ))}
-          </List>
+          <Text>Dummy</Text>
         </View>
       )
     }

@@ -25,7 +25,26 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 // import material from '../../native-base-theme/variables/material'
 // import platform from '../../native-base-theme/variables/platform'
 
-class UserList extends Component {
+export const UserRatingInfo = ({ item, style }) => (
+  <View style={style}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end' }}>
+      <View style={{ alignItems: 'center' }}>
+        <Text>{item.role === 'Receiver' ? (item.rating ? item.rating : 'n/a') : 'n/a'}</Text>
+        <Text style={{ fontSize: 10, color: 'grey' }}>Rating</Text>
+      </View>
+      <View style={{ alignItems: 'center' }}>
+        <Text>{item.totalPickups ? item.totalPickups : 0}</Text>
+        <Text style={{ fontSize: 10, color: 'grey' }}>Pickups</Text>
+      </View>
+      <View style={{ alignItems: 'center' }}>
+        <Text>{item.lastSeen ? utils.lastSeen(item.lastSeen) : 'never'}</Text>
+        <Text style={{ fontSize: 10, color: 'grey' }}>Last seen</Text>
+      </View>
+    </View>
+  </View>
+)
+
+class _UserList extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
     drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
@@ -135,26 +154,7 @@ class UserList extends Component {
                         )}
                       </View>
                     </View>
-                    <View
-                      style={{
-                        paddingTop: 10,
-                        flexDirection: 'row',
-                        justifyContent: 'space-around',
-                        alignItems: 'flex-end'
-                      }}>
-                      <View style={{ alignItems: 'center' }}>
-                        <Text>{item.role === 'Receiver' ? (item.rating ? item.rating : 'n/a') : 'n/a'}</Text>
-                        <Text style={{ fontSize: 10, color: 'grey' }}>Rating</Text>
-                      </View>
-                      <View style={{ alignItems: 'center' }}>
-                        <Text>{item.totalPickups ? item.totalPickups : 0}</Text>
-                        <Text style={{ fontSize: 10, color: 'grey' }}>Pickups</Text>
-                      </View>
-                      <View style={{ alignItems: 'center' }}>
-                        <Text>{item.lastSeen ? utils.lastSeen(item.lastSeen) : 'never'}</Text>
-                        <Text style={{ fontSize: 10, color: 'grey' }}>Last seen</Text>
-                      </View>
-                    </View>
+                    <UserRatingInfo style={{ paddingTop: 10 }} item={item} />
                   </View>
                 </View>
               </TouchableHighlight>
@@ -165,7 +165,9 @@ class UserList extends Component {
     )
   }
 }
-export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta']), utils.mapDispatchToProps)(UserList)
+export const UserList = connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta']), utils.mapDispatchToProps)(
+  _UserList
+)
 
 const styles = StyleSheet.create({
   container: {

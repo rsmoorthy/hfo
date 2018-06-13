@@ -20,6 +20,7 @@ import {
   Text,
   Card,
   CardItem,
+  Toast,
   Badge
 } from 'native-base'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
@@ -152,10 +153,17 @@ class PickupForm extends Component {
         this.props.doAddPickup({
           ...value,
           callback: (err, message) => {
-            if (err) Alert.alert('Error in Flight check', err)
-            else {
-              Alert.alert('Flight check Success', message)
+            if (err) {
+              Alert.alert('Error in Flight check', err)
+            } else {
+              // Alert.alert('Flight check Success', message)
               this.props.navigation.navigate('Pickups')
+              Toast.show({
+                text: 'Updated Successfully. Flight: ' + message,
+                buttonText: 'Ok',
+                type: 'success',
+                duration: 20000
+              })
             }
           }
         })
@@ -202,7 +210,11 @@ class PickupForm extends Component {
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
+              {pickup === null ? (
+                <Icon name="menu" onPress={this.props.navigation.openDrawer} />
+              ) : (
+                <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+              )}
             </Button>
           </Left>
           <Body>
@@ -220,10 +232,10 @@ class PickupForm extends Component {
         <Content>
           <View style={styles.container}>
             <Card>
-              <CardItem header bordered>
-                <Text>New Pickup Form</Text>
-              </CardItem>
               <CardItem bordered>
+                <Text>{pickup === null ? 'New Pickup Form' : 'Pickup Form'}</Text>
+              </CardItem>
+              <CardItem>
                 <View style={{ width: '100%', alignSelf: 'stretch' }}>
                   <Form
                     ref={c => (this._form = c)}
@@ -239,12 +251,14 @@ class PickupForm extends Component {
                   <Text> Submit </Text>
                 </Button>
               </CardItem>
+              <CardItem>
+                <Text style={{ color: 'red', fontSize: 22 }}>{this.props.meta.pickupError}</Text>
+                <Text style={{ color: 'green', fontSize: 22 }}>{this.props.meta.pickupSuccess}</Text>
+                <View style={{ height: 300 }}>
+                  <Text> </Text>
+                </View>
+              </CardItem>
             </Card>
-            <Text style={{ color: 'red', fontSize: 22 }}>{this.props.meta.pickupError}</Text>
-            <Text style={{ color: 'green', fontSize: 22 }}>{this.props.meta.pickupSuccess}</Text>
-            <View style={{ height: 300 }}>
-              <Text> </Text>
-            </View>
           </View>
         </Content>
       </Container>
@@ -257,10 +271,10 @@ export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta', '
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
-    marginLeft: 30,
-    marginRight: 30,
-    marginBottom: 30,
+    marginTop: 10,
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 10,
     backgroundColor: 'white',
     justifyContent: 'center'
   }

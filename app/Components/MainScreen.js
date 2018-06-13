@@ -3,7 +3,7 @@ import { View, ScrollView, Image, StyleSheet, Platform, ActivityIndicator, Statu
 
 import Login from './Login'
 import PassengerHome from './PassengerHome'
-import UserList from './UserList'
+import { UserList } from './UserList'
 import UserForm from './UserForm'
 import FlightArrivals from './FlightArrivals'
 import SearchTab from './AppTabNavigator/SearchTab'
@@ -14,7 +14,7 @@ import DisplayList from './DisplayList'
 import PassengerArrivalsTab from './AppTabNavigator/PassengerArrivalsTab'
 import Signup from './Signup'
 import PickupForm from './PickupForm'
-import PickupList from './PickupList'
+import PickupList, { PickupView } from './PickupList'
 import CameraView from './CameraView'
 import ModalScreen from './ModalScreen'
 import GetPhotoModal from './GetPhotoModal'
@@ -34,7 +34,7 @@ import {
   createBottomTabNavigator,
   createSwitchNavigator
 } from 'react-navigation'
-import { Icon, Button, Text } from 'native-base'
+import { Icon, Button, Text, Root } from 'native-base'
 import { Font, AppLoading, Expo, ScreenOrientation, Notifications } from 'expo'
 import NavigatorService from '../services/navigator'
 
@@ -142,7 +142,7 @@ class MainScreen extends Component {
   }
 
   render() {
-    const pickupStack = createStackNavigator({ PickupList, PickupForm }, { initialRouteName: 'PickupList' })
+    const pickupStack = createStackNavigator({ PickupList, PickupView, PickupForm }, { initialRouteName: 'PickupList' })
     const adminUsersStack = createStackNavigator({ UserList, UserForm }, { initialRouteName: 'UserList' })
     const authStack = createSwitchNavigator(
       {
@@ -210,6 +210,13 @@ class MainScreen extends Component {
     } else if (this.props.login.role === 'Admin') {
       userStack = createDrawerNavigator(
         {
+          Pickups: {
+            screen: pickupStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
+            }
+          },
           'New Pickup': PickupForm,
           Users: {
             screen: adminUsersStack,
@@ -219,14 +226,7 @@ class MainScreen extends Component {
             }
           },
           Profile: Profile,
-          Pickups: {
-            screen: pickupStack,
-            navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
-              drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
-            }
-          },
-          CameraView: CameraView,
+          // CameraView: CameraView,
           FlightArrivals: FlightArrivals
         },
         navigationOptions
@@ -261,11 +261,13 @@ class MainScreen extends Component {
       }
     )
     return (
-      <RootNavigator
-        ref={nav => {
-          NavigatorService.setContainer(nav)
-        }}
-      />
+      <Root>
+        <RootNavigator
+          ref={nav => {
+            NavigatorService.setContainer(nav)
+          }}
+        />
+      </Root>
     )
   }
 }

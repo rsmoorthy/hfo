@@ -16,17 +16,26 @@ router.get('/', async (req, res, next) => {
     {},
     { name: 1, email: 1, mobile: 1, role: 1, photo: 1, lastSeen: 1, rating: 1, pickups: 1 }
   ).exec()
+  ret.forEach(u => (u.photo = utils.getPhotoUrl(u._id, u.photo)))
   return res.json({ status: 'ok', users: ret === null ? [] : ret })
 })
 
 /* Get Photo */
 router.get('/photo/:id', async (req, res, next) => {
   var user = await utils.getLoginUser(req)
-  if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
+  // if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
   var id = req.params.id
 
   var ret = await Users.findById(id, { photo: 1 }).exec()
-  return res.json({ status: 'ok', photo: ret === null ? '' : ret.photo })
+  console.log(ret.photo.substr(0, 30))
+  if (ret && ret.photo && ret.photo.length && ret.photo.substr(0, 4) === 'data') {
+    let photo = ret.photo.replace(/^data:image\/jpeg;base64,/, '')
+    console.log(photo.substr(0, 20))
+    res.contentType('image/jpeg')
+    return res.send(Buffer.from(photo, 'base64'))
+  }
+  return res.sendStatus(404)
+  // return res.json({ status: 'ok', photo: ret === null ? '' : ret.photo })
 })
 
 router.post('/update/:id', async (req, res, next) => {
@@ -51,7 +60,10 @@ router.post('/update/:id', async (req, res, next) => {
   }
 
   var ret = await Users.findByIdAndUpdate(id, inp).exec()
-  if (ret) return res.json({ status: 'ok' })
+  if (ret) {
+    ret.photo = utils.getPhotoUrl(ret._id, ret.photo)
+    return res.json({ status: 'ok' })
+  }
   return res.json({ status: 'error', message: 'Unable to update the User record' })
 })
 

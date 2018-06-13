@@ -8,6 +8,7 @@ var crypto = require('crypto')
 var ejs = require('ejs')
 var path = require('path')
 var emailaws = require('../services/emailaws')
+var utils = require('../utils')
 
 var cache = { time: 0, data: [] }
 
@@ -157,7 +158,7 @@ router.post('/login', async function(req, res, next) {
       name: ret.name,
       email: ret.email,
       mobile: ret.mobile,
-      photo: ret.photo,
+      photo: utils.getPhotoUrl(ret._id, ret.photo),
       role: ret.role
     }
   })
