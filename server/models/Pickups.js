@@ -10,11 +10,34 @@ var PickupsSchema = new mongoose.Schema({
   mobile: String,
   airport: String,
   flight: String,
+  carrierName: String,
+  carrierICAO: String,
   pickupDate: Date,
   completed: String,
   receiverCompleted: Date,
   passengerCompleted: Date,
-  status: { type: String, enum: ['New', 'Assigned', 'Completed'] },
+
+  fromCode: String,
+  fromAirport: String,
+  fromCity: String,
+  fromPosition: String,
+  toCode: String,
+  toAirport: String,
+  toCity: String,
+  toPosition: String,
+  scheduledDeparture: Date,
+  scheduledArrival: Date,
+
+  cancelled: String,
+  flightStatus: String,
+  flightProgress: String,
+  actualDeparture: Date,
+  actualArrival: Date,
+  etaArrival: Date,
+  departureDelay: String,
+  arrivalDelay: String,
+
+  status: { type: String, enum: ['New', 'Assigned', 'Arrived', 'Completed'] },
   updated_at: { type: Date, default: Date.now }
 })
 
