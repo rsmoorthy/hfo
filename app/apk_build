@@ -5,7 +5,9 @@ npm install
 
 npm run eject
 
-cp build.gradle android/app/
+cp app_build.gradle android/app/
+cp project_build.gradle android/
+
 echo "Ensure that APKPASSWD environment variable is set"
 sed -i "s/APKPASSWD/$APKPASSWD/g" android/app/build.gradle
 cp ~/keystores/android.jks android/app/rsmkey.jks
