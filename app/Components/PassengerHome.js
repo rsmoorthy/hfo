@@ -10,7 +10,8 @@ import CardComponent from './CardComponent'
 
 class PassengerHome extends Component {
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />
+    tabBarIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
   }
 
   render() {
@@ -18,7 +19,9 @@ class PassengerHome extends Component {
       <Container style={styles.container}>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
-            <Icon name="menu" />
+            <Button transparent>
+              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
+            </Button>
           </Left>
           <Body>
             <Text style={{ fontSize: 20, color: 'white' }}>HFO - My Itinerary</Text>
@@ -26,9 +29,6 @@ class PassengerHome extends Component {
           <Right>
             <Button transparent onPress={() => this.props.getPickups()}>
               <Icon name="ios-refresh" />
-            </Button>
-            <Button transparent onPress={() => this.props.doLogout()}>
-              <Icon name="ios-log-out" />
             </Button>
           </Right>
         </Header>

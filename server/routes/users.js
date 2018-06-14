@@ -8,14 +8,27 @@ var utils = require('../utils')
 var crypto = require('crypto')
 
 /* GET ALL Users */
-router.get('/', async (req, res, next) => {
+router.get('/:query?', async (req, res, next) => {
   var user = await utils.getLoginUser(req)
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
+  var query = req.param.query
 
-  var ret = await Users.find(
-    {},
-    { name: 1, email: 1, mobile: 1, role: 1, photo: 1, lastSeen: 1, rating: 1, pickups: 1 }
-  ).exec()
+  var q = {}
+  if (query) {
+    let [k, v] = query.split('=')
+    if (k && v) q[k] = v
+  }
+
+  var ret = await Users.find(q, {
+    name: 1,
+    email: 1,
+    mobile: 1,
+    role: 1,
+    photo: 1,
+    lastSeen: 1,
+    rating: 1,
+    pickups: 1
+  }).exec()
   ret.forEach(u => (u.photo = utils.getPhotoUrl(u._id, u.photo)))
   return res.json({ status: 'ok', users: ret === null ? [] : ret })
 })

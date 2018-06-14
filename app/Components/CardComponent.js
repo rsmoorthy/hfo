@@ -14,6 +14,7 @@ class CardComponent extends Component {
     }
 
     const pickup = this.props.pickup
+    console.log(pickup)
 
     return (
       <Card>
@@ -28,7 +29,7 @@ class CardComponent extends Component {
           </Left>
         </CardItem>
         <CardItem cardBody>
-          <Image source={images[pickup.airport]} style={{ height: 120, width: null, flex: 1 }} />
+          {/* <Image source={images[pickup.airport]} style={{ height: 120, width: null, flex: 1 }} /> */}
         </CardItem>
         <CardItem style={{ height: 45 }}>
           <Left>
@@ -54,7 +55,7 @@ class CardComponent extends Component {
               <Text>Receiver</Text>
             </Left>
             <Body>
-              <Text>{pickup.receiver}</Text>
+              <Text>{pickup.receiver ? pickup.receiver.name : ''}</Text>
             </Body>
           </ListItem>
           <ListItem>

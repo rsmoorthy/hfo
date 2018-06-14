@@ -58,7 +58,6 @@ const promiseTo = async promise => {
 }
 
 const getPhotoUrl = (id, photo) => {
-  console.log(id, photo && photo.substr(0, 20))
   if (photo && photo.length && photo.substr(0, 4) === 'data') return config.SERVER_IP + '/users/photo/' + id
   return photo === undefined ? '' : photo
 }

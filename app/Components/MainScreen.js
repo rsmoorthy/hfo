@@ -13,8 +13,9 @@ import Profile from './Profile'
 import DisplayList from './DisplayList'
 import PassengerArrivalsTab from './AppTabNavigator/PassengerArrivalsTab'
 import Signup from './Signup'
-import PickupForm from './PickupForm'
+import PickupForm, { AssignReceiverModal, RequestPickup } from './PickupForm'
 import PickupList, { PickupView } from './PickupList'
+import AdminScreen, { AdminTemplatesList, AdminTemplatesForm } from './AdminScreen'
 import CameraView from './CameraView'
 import ModalScreen from './ModalScreen'
 import GetPhotoModal from './GetPhotoModal'
@@ -144,6 +145,10 @@ class MainScreen extends Component {
   render() {
     const pickupStack = createStackNavigator({ PickupList, PickupView, PickupForm }, { initialRouteName: 'PickupList' })
     const adminUsersStack = createStackNavigator({ UserList, UserForm }, { initialRouteName: 'UserList' })
+    const adminScreensStack = createStackNavigator(
+      { AdminScreen, AdminTemplatesList, AdminTemplatesForm, UserList, UserForm },
+      { initialRouteName: 'AdminScreen' }
+    )
     const authStack = createSwitchNavigator(
       {
         Login: Login,
@@ -187,6 +192,7 @@ class MainScreen extends Component {
       userStack = createDrawerNavigator(
         {
           PassengerHome: PassengerHome,
+          RequestPickup: RequestPickup,
           Profile: Profile
         },
         navigationOptions
@@ -210,6 +216,14 @@ class MainScreen extends Component {
     } else if (this.props.login.role === 'Admin') {
       userStack = createDrawerNavigator(
         {
+          Admin: {
+            screen: adminScreensStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
+              header: null
+            }
+          },
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
@@ -247,7 +261,8 @@ class MainScreen extends Component {
       {
         Main: MyAppNavigator,
         Modal: ModalScreen,
-        GetPhotoModal: GetPhotoModal
+        GetPhotoModal: GetPhotoModal,
+        AssignReceiverModal: AssignReceiverModal
       },
       {
         mode: 'modal',

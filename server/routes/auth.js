@@ -7,11 +7,13 @@ var R = require('ramda')
 var crypto = require('crypto')
 var ejs = require('ejs')
 var path = require('path')
-var emailaws = require('../services/emailaws')
+var email = require('../services/email')
+var sms = require('../services/sms')
 var utils = require('../utils')
 
 var cache = { time: 0, data: [] }
 
+/*
 const sendNewAccountSMS = async ({ id, name, mobile, authCode }) => {
   return ['SMS Not configured yet']
 }
@@ -32,6 +34,7 @@ const sendNewAccountEmail = async ({ id, name, email, authCode }) => {
   })
   return [err, out]
 }
+*/
 
 /* Signup */
 router.post('/signup', async function(req, res, next) {
@@ -75,11 +78,16 @@ router.post('/signup', async function(req, res, next) {
   if (!ret) return res.json({ status: 'error', message: 'Unable to save to database' })
 
   if (ret.email) {
-    let [err, mailret] = await sendNewAccountEmail({ ...ret._doc, id: ret._id, authCode: inp.authCode })
+    let [err, mailret] = await email.emailSend('OTP', { ...ret._doc, id: ret._id, authCode: inp.authCode })
     if (err) return res.json({ status: 'error', message: 'Unable to send email: ' + err })
   }
   if (!ret.email && ret.mobile) {
-    let [err, mailret] = await sendNewAccountSMS({ ...ret._doc, id: ret._id, authCode: inp.authCode })
+    let [err, mailret] = await sms.smsSend('OTP', {
+      ...ret._doc,
+      id: ret._id,
+      authCode: inp.authCode,
+      otp: inp.authCode
+    })
     if (err) return res.json({ status: 'error', message: 'Unable to send SMS: ' + err })
   }
   return res.json({

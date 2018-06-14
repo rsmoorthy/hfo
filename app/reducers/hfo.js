@@ -6,6 +6,8 @@ const initialState = {
   receivers: {},
   pickups: [],
   notifications: [],
+  smsTemplates: [],
+  emailTemplates: [],
   signup: {
     id: '',
     inProgress: false,
@@ -30,6 +32,7 @@ const initialState = {
   },
   meta: {
     screenOpacity: 1,
+    adminInProgress: false,
     userListInProgress: false,
     pickupListInProgress: false,
     inProgress: false,
@@ -204,7 +207,11 @@ export default (state = initialState, action) => {
           role: '',
           photo: '',
           error: action.type === 'LOGIN_FAILURE' ? action.message : ''
-        }
+        },
+        users: [],
+        passengers: {},
+        receivers: {},
+        pickups: []
       }
 
     case 'UPDATE_LOGIN_DATA':
@@ -282,6 +289,28 @@ export default (state = initialState, action) => {
       return {
         ...state,
         expoToken: action.expoToken
+      }
+
+    case 'ADMIN_IN_PROGRESS':
+      return {
+        ...state,
+        meta: {
+          ...state.meta,
+          adminInProgress: true
+        }
+      }
+
+    case 'TEMPLATES_LIST':
+      return {
+        ...state,
+        smsTemplates: action.templates ? R.filter(item => item.type === 'SMS', action.templates) : state.smsTemplates,
+        emailTemplates: action.templates
+          ? R.filter(item => item.type === 'Email', action.templates)
+          : state.emailTemplates,
+        meta: {
+          ...state.meta,
+          adminInProgress: false
+        }
       }
 
     // ------------------------------------------------------------------

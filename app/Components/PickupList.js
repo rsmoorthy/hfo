@@ -53,38 +53,48 @@ const MobileInfo = ({ item }) => (
   </View>
 )
 
-const ProfileInfo = ({ style, item, who }) => (
-  <View style={style}>
-    <Text style={{ fontSize: 10, color: 'gray' }}>{who}</Text>
-    {who === 'Receiver' && item.receiverId === null ? (
-      <View>
-        <Text style={{ fontSize: 16, color: 'brown' }}>Not assigned</Text>
-      </View>
-    ) : (
-      <View>
-        <View style={{ flexDirection: 'row' }}>
-          <View style={{ flex: 1 }}>
-            <Image
-              source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
-              style={{ width: 40, height: 40, borderRadius: 37.5 }}
-            />
-          </View>
-          {who !== 'Receiver' && (
-            <View style={{ flex: 1.5 }}>
-              <Text style={{ fontSize: 14 }}>{item.name}</Text>
-            </View>
-          )}
-          {who === 'Receiver' && <UserRatingInfo style={{ flex: 3 }} item={item} />}
-        </View>
+const ProfileInfo = ({ style, item, who, navigation }) => {
+  return (
+    <View style={style}>
+      <Text style={{ fontSize: 10, color: 'gray' }}>{who}</Text>
+      {who === 'Receiver' && (item.receiverId === null || item.receiverId === undefined) ? (
         <View>
-          {who === 'Receiver' && <Text style={{ fontSize: 14 }}>{item.name}</Text>}
-          <EmailInfo item={item} />
-          <MobileInfo item={item} />
+          <Text style={{ fontSize: 16, color: 'brown' }}>Not assigned</Text>
+          <Button
+            transparent
+            small
+            title="Assign Receiver"
+            onPress={() => navigation.push('AssignReceiverModal', { pickup: item.item })}
+            style={{ borderColor: 'brown', borderWidth: 1, padding: 2 }}>
+            <Text>Assign Receiver</Text>
+          </Button>
         </View>
-      </View>
-    )}
-  </View>
-)
+      ) : (
+        <View>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ flex: 1 }}>
+              <Image
+                source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
+                style={{ width: 40, height: 40, borderRadius: 37.5 }}
+              />
+            </View>
+            {who !== 'Receiver' && (
+              <View style={{ flex: 1.5 }}>
+                <Text style={{ fontSize: 14 }}>{item.name}</Text>
+              </View>
+            )}
+            {who === 'Receiver' && <UserRatingInfo style={{ flex: 3 }} item={item} />}
+          </View>
+          <View>
+            {who === 'Receiver' && <Text style={{ fontSize: 14 }}>{item.name}</Text>}
+            <EmailInfo item={item} />
+            <MobileInfo item={item} />
+          </View>
+        </View>
+      )}
+    </View>
+  )
+}
 
 /*
             <View style={{ flex: 1 }}>
@@ -230,14 +240,16 @@ class PickupList extends Component {
                       {this.props.login.role !== 'Passenger' && (
                         <ProfileInfo
                           style={{ flex: 2, borderRightWidth: 0.2, borderRightColor: 'gray', paddingRight: 10 }}
-                          item={item}
+                          item={{ ...item, receiverId: item.receiveId, item: item }}
+                          navigation={this.props.navigation}
                           who="Passenger"
                         />
                       )}
                       {this.props.login.role !== 'Receiver' && (
                         <ProfileInfo
                           style={{ flex: 3, paddingLeft: 5 }}
-                          item={{ ...item.receiver, receiverId: item.receiverId }}
+                          item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
+                          navigation={this.props.navigation}
                           who="Receiver"
                         />
                       )}
@@ -402,14 +414,14 @@ class _PickupView extends Component {
                   <CardItem bordered>
                     <ProfileInfo
                       style={{ flex: 1, borderRightWidth: 0, borderRightColor: 'gray', paddingRight: 10 }}
-                      item={item}
+                      item={{ ...item, receiverId: item.receiveId, item: item }}
                       who="Passenger"
                     />
                   </CardItem>
                   <CardItem bordered>
                     <ProfileInfo
                       style={{ flex: 1, paddingLeft: 5 }}
-                      item={{ ...item.receiver, receiverId: item.receiverId }}
+                      item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
                       who="Receiver"
                     />
                   </CardItem>

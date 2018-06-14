@@ -7,6 +7,9 @@ var Users = require('../models/Users')
 var R = require('ramda')
 var utils = require('../utils')
 var flightstats = require('../services/flightstats')
+var sms = require('../services/sms')
+var email = require('../services/email')
+var ejs = require('ejs')
 
 var cache = { time: 0, data: [] }
 
@@ -29,7 +32,7 @@ router.get('/:id?', async function(req, res, next) {
     ret.map(async p => {
       let p2 = { ...p._doc, receiver: {}, testing: 0 }
       // for (var p of ret) {
-      if (p.name === null && p.passengerId) {
+      if ((p.name === null || p.name === undefined) && p.passengerId) {
         let u = await Users.findById(p.passengerId).exec()
         if (u) {
           p2.name = u.name
@@ -67,28 +70,9 @@ router.post('/', async function(req, res, next) {
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
 
   var inp = req.body
-  // Check if the flight is available now
-  let [err, fl] = await flightstats.getSchedule(inp.flight, inp.pickupDate)
-  if (err) return res.json({ status: 'error', message: err + '\nPlease enter the correct flight number' })
-  if (inp.airport === 'Bangalore' && fl.toCode !== 'BLR')
-    return res.json({ status: 'error', message: fl.message + '\nFlight does not land in Bangalore' })
-
-  inp.pickupDate = fl.scheduledArrival.toString()
-  let fields = [
-    'fromCode',
-    'toCode',
-    'fromAirport',
-    'toAirport',
-    'fromCity',
-    'toCity',
-    'carrierName',
-    'carrierICAO',
-    'scheduledDeparture',
-    'scheduledArrival'
-  ]
-  fields.forEach(key => (inp[key] = fl[key]))
-  inp.fromPosition = JSON.stringify(fl.fromPosition)
-  inp.toPosition = JSON.stringify(fl.toPosition)
+  let [err, iret, fl] = await updateFlightSchedule(inp)
+  if (err) return res.json({ status: 'error', message: err })
+  inp = { ...iret }
 
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
@@ -101,7 +85,16 @@ router.post('/', async function(req, res, next) {
   }
   var newPickup = new Pickups(inp)
   ret = await newPickup.save()
-  if (ret._id) return res.json({ status: 'ok', id: ret._id, message: fl.message, flight: fl })
+  if (ret._id) {
+    if (ret.receiverId && !ret.sentInitialMailSMS) {
+      let row = await constructRecord(ret)
+      await sms.smsSend('WelcomePassenger', row)
+      await email.emailSend('WelcomePassenger', row)
+      await sms.smsSend('NotifyReceiver', row)
+      await Pickups.findByIdAndUpdate(ret._id, { sentInitialMailSMS: new Date() })
+    }
+    return res.json({ status: 'ok', id: ret._id, message: fl.message, flight: fl })
+  }
   res.json({ status: 'error', message: 'testing' })
 })
 
@@ -117,6 +110,13 @@ router.put('/:id', async function(req, res, next) {
   for (var key in inp) if (inp[key] === '' || inp[key] === null) delete inp[key]
   delete inp._id
 
+  var rec = await Pickups.findById(id).exec()
+  if (inp.flight && rec.flight !== inp.flight) {
+    let [err, iret, fl] = await updateFlightSchedule(inp)
+    if (err) return res.json({ status: 'error', message: err })
+    inp = { ...iret }
+  }
+
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
     let q = {}
@@ -127,7 +127,16 @@ router.put('/:id', async function(req, res, next) {
   }
 
   ret = await Pickups.findByIdAndUpdate(id, inp).exec()
-  if (ret) return res.json({ status: 'ok' })
+  if (ret) {
+    if (ret.receiverId && !ret.sentInitialMailSMS) {
+      let row = await constructRecord(ret)
+      await sms.smsSend('WelcomePassenger', row)
+      await email.emailSend('WelcomePassenger', row)
+      await sms.smsSend('NotifyReceiver', row)
+      await Pickups.findByIdAndUpdate(ret._id, { sentInitialMailSMS: new Date() })
+    }
+    return res.json({ status: 'ok' })
+  }
   res.json({ status: 'error', message: 'Unable to update the record' })
 })
 
@@ -146,5 +155,64 @@ router.put('/complete/:id', async function(req, res, next) {
   if (ret) return res.json({ status: 'ok' })
   res.json({ status: 'error', message: 'Unable to complete' })
 })
+
+const constructRecord = async row => {
+  row = row._doc ? row._doc : row
+  let p = { ...row._doc, receiver: {}, testing: 0 }
+
+  if ((p.name === null || p.name === undefined) && p.passengerId) {
+    let u = await Users.findById(p.passengerId).exec()
+    if (u) {
+      p.name = u.name
+      p.mobile = u.mobile
+      p.email = u.email
+      p.photo = u.photo ? utils.getPhotoUrl(p.passengerId, u.photo) : ''
+      p.rating = u.rating
+      p.pickups = u.pickups
+      p.testing = 1
+    }
+  } else if (p.passengerId === null) {
+  }
+
+  if (p.receiverId) {
+    let u = await Users.findById(p.receiverId).exec()
+    p.receiver = {
+      name: u.name,
+      mobile: u.mobile,
+      email: u.email,
+      photo: u.photo ? utils.getPhotoUrl(p.receiverId, u.photo) : '',
+      rating: u.rating,
+      pickups: u.pickups
+    }
+  }
+  return p
+}
+
+const updateFlightSchedule = async inp => {
+  // Check if the flight is available now
+  let [err, fl] = await flightstats.getSchedule(inp.flight, inp.pickupDate)
+  if (err) return [err + '\nPlease enter the correct flight number']
+
+  if (inp.airport === 'Bengaluru' && fl.toCode !== 'BLR') return [fl.message + '\nFlight does not land in Bengalure']
+
+  inp.pickupDate = fl.scheduledArrival.toString()
+  let fields = [
+    'fromCode',
+    'toCode',
+    'fromAirport',
+    'toAirport',
+    'fromCity',
+    'toCity',
+    'carrierName',
+    'carrierICAO',
+    'scheduledDeparture',
+    'scheduledArrival'
+  ]
+  fields.forEach(key => (inp[key] = fl[key]))
+  inp.fromPosition = JSON.stringify(fl.fromPosition)
+  inp.toPosition = JSON.stringify(fl.toPosition)
+
+  return [null, inp, fl]
+}
 
 module.exports = router

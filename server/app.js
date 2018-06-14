@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users')
 var flightsRouter = require('./routes/flights')
 var authRouter = require('./routes/auth')
 var pickupsRouter = require('./routes/pickups')
+var templatesRouter = require('./routes/templates')
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise
 mongoose
@@ -33,6 +34,7 @@ app.use('/users', usersRouter)
 app.use('/flights', flightsRouter)
 app.use('/auth', authRouter)
 app.use('/pickups', pickupsRouter)
+app.use('/templates', templatesRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -30,13 +30,13 @@ export const getCurrentFlights = () => {
   }
 }
 
-export const getUserList = () => {
+export const getUserList = role => {
   return (dispatch, getState) => {
     dispatch({ type: 'USER_LIST_IN_PROGRESS' })
     const state = getState()
     axios({
       method: 'GET',
-      url: host + '/users',
+      url: host + '/users' + (role ? '/role=' + role : ''),
       headers: {
         Authorization: 'token ' + state.hfo.login.token
       }
@@ -248,7 +248,6 @@ export const doAddPickup = value => {
 
 export const doUpdatePickup = value => {
   return (dispatch, getState) => {
-    console.log('update pickup', value)
     const state = getState()
     dispatch({ type: 'PICKUP_RESET' })
     const options = {}
@@ -266,9 +265,14 @@ export const doUpdatePickup = value => {
           dispatch({ type: 'PICKUP_SUCCESS', user: value })
           setTimeout(() => dispatch({ type: 'PICKUP_RESET' }), 8000)
           getPickups()(dispatch, getState)
-        } else dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
+          if (value.callback) value.callback(null, response.data.message)
+        } else {
+          if (value.callback) value.callback(response.data.message)
+          dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
+        }
       })
       .catch(error => {
+        if (value.callback) value.callback(error.message)
         dispatch({ type: 'PICKUP_FAILURE', message: error.message })
       })
   }
@@ -316,6 +320,82 @@ export const setOpacity = opacity => ({
   type: 'OPACITY',
   opacity
 })
+
+export const getTemplates = callback => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'ADMIN_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'GET',
+      url: host + '/templates',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'TEMPLATES_LIST', templates: response.data.templates })
+          if (callback) callback(null, response.data.message)
+        } else dispatch({ type: 'TEMPLATES_LIST', templates: [] })
+      })
+      .catch(error => {
+        dispatch({ type: 'TEMPLATES_LIST', templates: [] })
+        if (callback) callback(error)
+      })
+  }
+}
+
+export const doAddTemplate = (value, callback) => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'ADMIN_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'POST',
+      url: host + '/templates',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      },
+      data: value
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'TEMPLATES_LIST' })
+          if (callback) callback(null, response.data.message)
+          getTemplates()(dispatch, getState)
+        } else dispatch({ type: 'TEMPLATES_LIST' })
+      })
+      .catch(error => {
+        dispatch({ type: 'TEMPLATES_LIST' })
+        if (callback) callback(error)
+      })
+  }
+}
+
+export const doUpdateTemplate = (value, callback) => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'ADMIN_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'PUT',
+      url: host + '/templates/update/' + value._id,
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      },
+      data: value
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'TEMPLATES_LIST' })
+          if (callback) callback(null, response.data.message)
+          getTemplates()(dispatch, getState)
+        } else dispatch({ type: 'TEMPLATES_LIST' })
+      })
+      .catch(error => {
+        dispatch({ type: 'TEMPLATES_LIST' })
+        if (callback) callback(error)
+      })
+  }
+}
 
 // Remove the rest of it
 export const doIncrement = () => ({
