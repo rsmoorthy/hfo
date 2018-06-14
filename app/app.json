@@ -19,6 +19,7 @@
     },
     "android": {
       "package": "com.hfo.proto",
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleSignIn": {
           "apiKey": "AIzaSyDo_pb3OKtv_pQP0Lb8qgbYM7hJwfjVD-Q",
