@@ -9,6 +9,7 @@ node_modules
 # config.js
 server/config.js
 app/config.js
+app/google-services.json
 
 # misc
 .env.local
