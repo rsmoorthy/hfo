@@ -263,7 +263,6 @@ class _AdminTemplatesForm extends Component {
           }
         })
     }
-    console.log('value', value)
   }
 
   componentWillMount() {
