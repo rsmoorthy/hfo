@@ -30,14 +30,21 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 
 class GetPhotoModal extends Component {
   state = {
+    id: null,
     image: null,
     permissionsGranted: false
   }
 
   async componentWillMount() {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA)
-    const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
-    this.setState({ permissionsGranted: status === 'granted' })
+    const id = this.props.navigation.getParam('id', null)
+    const img = this.props.navigation.getParam('image', null)
+    if (img) this.setState({ image: img })
+    if (id) {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA)
+      const { status2 } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
+      this.setState({ permissionsGranted: status === 'granted' })
+      this.setState({ id: id })
+    }
   }
 
   componentDidMount() {
@@ -82,25 +89,37 @@ class GetPhotoModal extends Component {
   }
 
   render() {
-    let { image } = this.state
-    const id = this.props.navigation.getParam('id', null)
-
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '60%', borderRadius: 8, borderWidth: 1 }}>
+        <View
+          style={{
+            backgroundColor: 'white',
+            borderColor: 'gray',
+            width: '70%',
+            height: '50%',
+            borderRadius: 8,
+            borderWidth: 1
+          }}>
           <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
-          <View style={{ padding: 20 }}>
-            <Button
-              style={{ alignSelf: 'stretch', marginBottom: 20 }}
-              title="From Gallery"
-              onPress={() => this.pickImage(id)}>
-              <Text>From Gallery</Text>
-            </Button>
-            <Button style={{ alignSelf: 'stretch', marginBottom: 20 }} onPress={() => this.openCamera(id)}>
-              <Text>Take Picture (Camera)</Text>
-            </Button>
-            {image && <Image source={{ uri: image }} style={{ width: 80, height: 80 }} />}
-          </View>
+          {this.state.id && (
+            <View style={{ flex: 1, padding: 20 }}>
+              <Button
+                style={{ alignSelf: 'stretch', marginBottom: 20 }}
+                title="From Gallery"
+                onPress={() => this.pickImage(this.state.id)}>
+                <Text>From Gallery</Text>
+              </Button>
+              <Button style={{ alignSelf: 'stretch', marginBottom: 20 }} onPress={() => this.openCamera(this.state.id)}>
+                <Text>Take Picture (Camera)</Text>
+              </Button>
+            </View>
+          )}
+          {this.state.image && (
+            <Image
+              source={{ uri: this.state.image }}
+              style={{ alignSelf: 'stretch', flex: 3, width: undefined, height: undefined }}
+            />
+          )}
         </View>
       </View>
     )

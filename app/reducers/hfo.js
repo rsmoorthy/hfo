@@ -8,6 +8,7 @@ const initialState = {
   notifications: [],
   smsTemplates: [],
   emailTemplates: [],
+  notificationTemplates: [],
   signup: {
     id: '',
     inProgress: false,
@@ -49,9 +50,6 @@ const initialState = {
 }
 
 const updateRecordById = (records, row, id) => {
-  console.log('records', records)
-  console.log('row', row)
-  console.log('id', id)
   let idx = records.findIndex(obj => obj[id] === row[id])
   if (idx >= 0) {
     return [...records.slice(0, idx), row, ...records.slice(idx + 1)]
@@ -189,6 +187,9 @@ export default (state = initialState, action) => {
           mobile: action.value.mobile,
           role: action.value.role,
           photo: action.value.photo,
+          rating: action.value.rating,
+          pickups: action.value.pickups,
+          lastSeen: action.value.lastSeen,
           error: ''
         }
       }
@@ -282,7 +283,7 @@ export default (state = initialState, action) => {
     case 'NOTIFICATION':
       return {
         ...state,
-        notifications: [...state.notifications, action.notification]
+        notifications: updateRecordById(state.notifications, action.notification, 'notificationId')
       }
 
     case 'EXPO_TOKEN':
@@ -307,6 +308,9 @@ export default (state = initialState, action) => {
         emailTemplates: action.templates
           ? R.filter(item => item.type === 'Email', action.templates)
           : state.emailTemplates,
+        notificationTemplates: action.templates
+          ? R.filter(item => item.type === 'Notification', action.templates)
+          : state.notificationTemplates,
         meta: {
           ...state.meta,
           adminInProgress: false

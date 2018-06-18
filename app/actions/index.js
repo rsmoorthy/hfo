@@ -1,10 +1,11 @@
 import md5 from 'md5'
 import axios from 'axios'
 import qs from 'qs'
+import config from '../config'
 
-const hostip = process.env.SERVER_IP ? process.env.SERVER_IP : '192.168.8.100'
+const hostip = config.SERVER_IP ? config.SERVER_IP : '192.168.8.100'
 const host = 'http://' + hostip + ':3000'
-console.log('host', host, process.env.SERVER_IP, process.env)
+console.log('host', host, process.env.SERVER_IP, process.env, config.SERVER_IP)
 
 export const getCurrentFlights = () => {
   return (dispatch, getState) => {
@@ -199,11 +200,11 @@ export const getPickups = (id, callback) => {
     })
       .then(response => {
         if (response.data.status === 'ok' && id) {
-          if (callback) callback(response.data.pickup)
           dispatch({ type: 'PICKUP_LIST', pickup: response.data.pickup, id: id })
+          if (callback) callback(response.data.pickup)
         } else if (response.data.status === 'ok') {
-          if (callback) callback(response.data.pickups)
           dispatch({ type: 'PICKUP_LIST', pickups: response.data.pickups })
+          if (callback) callback(response.data.pickups)
         } else dispatch({ type: 'PICKUP_LIST', pickups: [], id: id })
       })
       .catch(error => {
@@ -246,7 +247,7 @@ export const doAddPickup = value => {
   }
 }
 
-export const doUpdatePickup = value => {
+export const doUpdatePickup = (value, callback) => {
   return (dispatch, getState) => {
     const state = getState()
     dispatch({ type: 'PICKUP_RESET' })
@@ -265,14 +266,14 @@ export const doUpdatePickup = value => {
           dispatch({ type: 'PICKUP_SUCCESS', user: value })
           setTimeout(() => dispatch({ type: 'PICKUP_RESET' }), 8000)
           getPickups()(dispatch, getState)
-          if (value.callback) value.callback(null, response.data.message)
+          if (callback) callback(null, response.data.message)
         } else {
-          if (value.callback) value.callback(response.data.message)
+          if (callback) value.callback(response.data.message)
           dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
         }
       })
       .catch(error => {
-        if (value.callback) value.callback(error.message)
+        if (callback) callback(error.message)
         dispatch({ type: 'PICKUP_FAILURE', message: error.message })
       })
   }

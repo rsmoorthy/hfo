@@ -84,31 +84,42 @@ export const getAirportBoards = async airport => {
 export const getFlightInfoStatus = async (icaoFlightNumber, arrivalDate = moment()) => {
   arrivalDate = typeof arrivalDate === 'object' ? arrivalDate : moment(arrivalDate)
 
-  var details = await rp.post({
-    uri: 'https://flightxml.flightaware.com/json/FlightXML3/FlightInfoStatus',
-    form: {
-      ident: icaoFlightNumber,
-      howMany: '5'
-    },
-    json: true,
-    auth: {
-      user: config.user,
-      pass: config.pass
-    },
-    rejectUnauthorized: false
-  })
+  let err
+  var details = await rp
+    .post({
+      uri: 'https://flightxml.flightaware.com/json/FlightXML3/FlightInfoStatus',
+      form: {
+        ident: icaoFlightNumber,
+        howMany: '15'
+      },
+      json: true,
+      auth: {
+        user: config.user,
+        pass: config.pass
+      },
+      rejectUnauthorized: false
+    })
+    .catch(e => (err = e.message))
+
+  if (err) return [err]
+  if (details.error) return [details.error]
 
   var response = []
-
   response = response.concat(
     extractFlightData(
       R.filter(
-        flight => arrivalDate.dayOfYear() === moment.unix(flight.filed_arrival_time.epoch).dayOfYear(),
+        // TODO: For now hard code to BLR
+        flight => {
+          return (
+            flight.destination.alternate_ident === 'BLR' &&
+            arrivalDate.dayOfYear() === moment.unix(flight.filed_arrival_time.epoch).dayOfYear()
+          )
+        },
         details.FlightInfoStatusResult.flights
       )
     )
   )
-  return response
+  return [null, response.length === 1 ? response[0] : []]
 }
 
 export const getFlightTrack = async faFlightID => {

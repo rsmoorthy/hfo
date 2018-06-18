@@ -28,9 +28,23 @@ export const sendSMS = async sms => {
     .catch(e => (err = e.message))
 
   if (err)
-    tr = new Transactions({ mode: 'SMS', type: 'Error', recordId: sms._id, subject: sms.message, descripion: err })
+    tr = new Transactions({
+      mode: 'SMS',
+      type: 'Error',
+      recordId: sms._id,
+      subject: sms.message,
+      to: sms.mobile,
+      descripion: err
+    })
   else
-    tr = new Transactions({ mode: 'SMS', type: 'Success', recordId: sms._id, subject: sms.message, descripion: resp })
+    tr = new Transactions({
+      mode: 'SMS',
+      type: 'Success',
+      recordId: sms._id,
+      subject: sms.message,
+      to: sms.mobile,
+      descripion: resp
+    })
 
   ret = await tr.save()
   return [err, resp]

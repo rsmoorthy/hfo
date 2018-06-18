@@ -173,33 +173,47 @@ export const getFlightTrack = async (flight, arrivalDate = moment()) => {
 
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&airport=BLR"
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/tracks/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&includeFlightPlan=false&airport=BLR&maxPositions=10"
-  var status = await rp.get({
-    uri:
-      'https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/tracks/' +
-      flight.substr(0, 2) +
-      '/' +
-      flight.substr(2) +
-      '/arr/' +
-      ad.year() +
-      '/' +
-      (ad.month() + 1) +
-      '/' +
-      ad.date(),
-    qs: {
-      appId: config.appId,
-      appKey: config.appKey,
-      maxPositions: 1,
-      extendedOptions: 'includeNewFields'
-    }
-  })
+  let err
+  var status = await rp
+    .get({
+      uri:
+        'https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/tracks/' +
+        flight.substr(0, 2) +
+        '/' +
+        flight.substr(2) +
+        '/arr/' +
+        ad.year() +
+        '/' +
+        (ad.month() + 1) +
+        '/' +
+        ad.date(),
+      qs: {
+        appId: config.appId,
+        appKey: config.appKey,
+        maxPositions: 1,
+        extendedOptions: 'includeNewFields'
+      }
+    })
+    .catch(e => (err = e.message))
+
+  if (err) return [err]
 
   status = JSON.parse(status)
+  console.log(status)
   var fl = status.flightTracks[0]
-  return {
-    flight: fl.carrierFsCode + fl.flightNumber,
-    fromCode: fl.departureAirportFsCode,
-    toCode: fl.arrivalAirportFsCode,
-    scheduledDeparture: moment(fl.departureDate.dateUtc),
-    position: fl.positions.length ? fl.positions[0] : {}
+  var position = fl.positions.length ? fl.positions[0] : {}
+  if (fl.positions.length) {
+    position.latitude = position.lat
+    position.longitude = position.lon
   }
+  return [
+    null,
+    {
+      flight: fl.carrierFsCode + fl.flightNumber,
+      fromCode: fl.departureAirportFsCode,
+      toCode: fl.arrivalAirportFsCode,
+      scheduledDeparture: moment(fl.departureDate.dateUtc),
+      position: JSON.stringify(position)
+    }
+  ]
 }

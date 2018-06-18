@@ -6,6 +6,7 @@ var TransactionsSchema = new mongoose.Schema({
   subject: String,
   recordId: String,
   description: String,
+  to: String,
   created_at: { type: Date },
   updated_at: { type: Date, default: Date.now }
 })

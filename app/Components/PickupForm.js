@@ -213,21 +213,13 @@ class PickupForm extends Component {
               {pickup === null ? (
                 <Icon name="menu" onPress={this.props.navigation.openDrawer} />
               ) : (
-                <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+                <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
               )}
             </Button>
           </Left>
           <Body>
             <Text style={{ fontSize: 20, color: 'white' }}>{pickup === null ? 'New Pickup' : 'Pickup'}</Text>
           </Body>
-          <Right>
-            <Button transparent onPress={() => this.props.getUserList()}>
-              <Icon name="ios-refresh" />
-            </Button>
-            <Button transparent onPress={() => this.props.doLogout()}>
-              <Icon name="ios-log-out" />
-            </Button>
-          </Right>
         </Header>
         <Content>
           <View style={styles.container}>
@@ -308,14 +300,11 @@ class _AssignReceiverModal extends Component {
     if (value) {
       this.state.value = value
       if (value._id) {
-        this.props.doUpdatePickup({
-          ...value,
-          callback: (err, message) => {
-            if (err) Alert.alert('Failed to Assign receiver', err)
-            else {
-              Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 5000 })
-              this.props.navigation.goBack()
-            }
+        this.props.doUpdatePickup(value, (err, message) => {
+          if (err) Alert.alert('Failed to Assign receiver', err)
+          else {
+            Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 5000 })
+            this.props.navigation.goBack()
           }
         })
       }
@@ -433,14 +422,11 @@ class _RequestPickup extends Component {
     if (value) {
       this.state.value = value
       if (value._id)
-        this.props.doUpdatePickup({
-          ...value,
-          callback: (err, message) => {
-            if (err) Alert.alert('Failed to Update', err)
-            else {
-              Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 5000 })
-              this.props.navigation.goBack()
-            }
+        this.props.doUpdatePickup(value, (err, message) => {
+          if (err) Alert.alert('Failed to Update', err)
+          else {
+            Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 5000 })
+            this.props.navigation.goBack()
           }
         })
       else
@@ -478,7 +464,7 @@ class _RequestPickup extends Component {
               {pickup === null ? (
                 <Icon name="menu" onPress={this.props.navigation.openDrawer} />
               ) : (
-                <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+                <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
               )}
             </Button>
           </Left>

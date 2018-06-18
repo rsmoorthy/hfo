@@ -8,6 +8,8 @@ npm run eject
 cp app_build.gradle android/app/
 cp project_build.gradle android/
 
+cp google-service.json android/
+
 echo "Ensure that APKPASSWD environment variable is set"
 sed -i "s/APKPASSWD/$APKPASSWD/g" android/app/build.gradle
 cp ~/keystores/android.jks android/app/rsmkey.jks
@@ -19,6 +21,6 @@ ls -l android/app/build/outputs/apk/
 # Alternate method
 
 #export abtools=/home/rsm/Android/Sdk/build-tools/26.0.1
-# ls -l app/build/outputs/apk/app-prod-release-unsigned.apk 
+# ls -l app/build/outputs/apk/app-prod-release-unsigned.apk
 # $abtools/zipalign -v -p 4 app/build/outputs/apk/app-prod-release-unsigned.apk app/build/outputs/apk/app-prod-release-unsigned-aligned.apk
 # $abtools/apksigner sign --ks ~/keystores/android.jks --out app-prod-release-signed.apk app/build/outputs/apk/app-prod-release-unsigned-aligned.apk

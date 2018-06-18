@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { StyleSheet, FlatList, TouchableOpacity, TouchableHighlight, Image } from 'react-native'
+import { StyleSheet, FlatList, TouchableOpacity, TouchableHighlight, Image, Alert } from 'react-native'
 import moment from 'moment'
 import { UserRatingInfo } from './UserList'
+import { Constants, MapView, Marker } from 'expo'
+import OrangeMarker from '../assets/orange_marker.png'
+import FlightMarker from '../assets/flight_marker.png'
 
 import {
   Container,
@@ -53,7 +56,7 @@ const MobileInfo = ({ item }) => (
   </View>
 )
 
-const ProfileInfo = ({ style, item, who, navigation }) => {
+export const ProfileInfo = ({ style, item, who, navigation }) => {
   return (
     <View style={style}>
       <Text style={{ fontSize: 10, color: 'gray' }}>{who}</Text>
@@ -73,10 +76,15 @@ const ProfileInfo = ({ style, item, who, navigation }) => {
         <View>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1 }}>
-              <Image
-                source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
-                style={{ width: 40, height: 40, borderRadius: 37.5 }}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (item.photo && item.photo.length) navigation.push('GetPhotoModal', { image: item.photo })
+                }}>
+                <Image
+                  source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
+                  style={{ width: 40, height: 40, borderRadius: 37.5 }}
+                />
+              </TouchableOpacity>
             </View>
             {who !== 'Receiver' && (
               <View style={{ flex: 1.5 }}>
@@ -96,23 +104,7 @@ const ProfileInfo = ({ style, item, who, navigation }) => {
   )
 }
 
-/*
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 10, color: 'gray' }}>
-                Rating {'  '}
-                <Text style={{ fontSize: 13 }}>{item.rating ? item.rating : 'n/a'}</Text>
-              </Text>
-              <Text style={{ fontSize: 10, color: 'gray' }}>
-                Pickups {'  '}
-                <Text style={{ fontSize: 13 }}>{item.pickups ? item.pickups : '0'}</Text>
-              </Text>
-              <Text style={{ fontSize: 10, color: 'gray' }}>
-                Last seen {'  '}
-                <Text>{item.lastSeen ? utils.lastSeen(item.lastSeen) : 'never'}</Text>
-              </Text>
-            </View>
-            */
-const FlightScheduleInfo = ({ item, style }) => (
+export const FlightScheduleInfo = ({ item, style }) => (
   <View style={style}>
     <View style={{ flexDirection: 'column' }}>
       <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -143,7 +135,7 @@ const FlightScheduleInfo = ({ item, style }) => (
           </Text>
         </View>
         <View style={{ flex: 0.2, alignItems: 'flex-start' }}>
-          <Icon name="ios-arrow-round-forward" />
+          <Icon name="md-arrow-round-forward" />
         </View>
         <View style={{ flex: 1, borderColor: 'blue', borderWidth: 0, alignItems: 'flex-start' }}>
           <Text style={{ fontSize: 16, color: 'black' }}>
@@ -160,11 +152,159 @@ const FlightScheduleInfo = ({ item, style }) => (
 const PickupMetaInfo = ({ item, style }) => (
   <View style={style}>
     <Text style={{ fontSize: 10, color: 'gray' }}> HFO Status: </Text>
-    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>{item.status}New</Text>
+    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>{item.status}</Text>
     <Text style={{ fontSize: 10, color: 'gray' }}> Flight Status: </Text>
-    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>Not Departed</Text>
-    <Text style={{ fontSize: 10, color: 'gray' }}> ETA: </Text>
-    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>16:30</Text>
+    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>
+      {item.flightStatus ? item.flightStatus : 'Not Departed'}
+    </Text>
+    <Text style={{ fontSize: 10, color: 'gray' }}>
+      {item.flightProgress && item.flightProgress.toString() === '100'
+        ? 'Arrival Time'
+        : 'Flight ETA' + (item.flightProgress ? '(Prog %)' : '')}
+    </Text>
+    <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>
+      {item.etaArrival ? moment(item.etaArrival).format('HH:mm') : moment(item.scheduledArrival).format('HH:mm')}
+      {'  '}
+      {item.flightProgress ? item.flightProgess : ''}
+    </Text>
+  </View>
+)
+
+export const FlightStatus = ({ item, style }) => (
+  <View style={style}>
+    <View style={{ flexDirection: 'row' }}>
+      <View style={{ flex: 1, paddingRight: 20 }}>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Flight Status: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}>{item.flightStatus ? item.flightStatus : 'Not Departed'}</Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Actual Departure: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}>
+          {' '}
+          {item.actualDeparture ? moment(item.actualDeparture).format('HH:mm') : ' '}{' '}
+        </Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Exp Departure: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}> {'  '} </Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Dep Delay: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}> {item.departureDelay ? item.departeDelay : ' '} </Text>
+      </View>
+      <View style={{ flex: 1, paddingLeft: 20 }}>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Flight Progress: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}> {item.flightProgress ? item.flightProgress + ' %' : 'n/a'} </Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Actual Arrival: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}>
+          {' '}
+          {item.actualArrival ? moment(item.actualArrival).format('HH:mm') : ' '}{' '}
+        </Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Exp Arrival: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}>
+          {' '}
+          {item.etaArrival ? moment(item.etaArrival).format('HH:mm') : ' '}{' '}
+        </Text>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Arr Delay: </Text>
+        <Text style={{ fontSize: 13, padding: 2 }}> {item.arrivalDelay ? item.arrivallay : ' '} </Text>
+      </View>
+    </View>
+  </View>
+)
+
+export const ArrivalBay = ({ item, style }) => (
+  <View style={style}>
+    <View style={{ flexDirection: 'row' }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingRight: 20
+        }}>
+        <Text style={{ fontSize: 10, color: 'gray' }}> Display Screen No: </Text>
+      </View>
+      <View style={{ flex: 1, paddingLeft: 20 }}>
+        <Text
+          style={{
+            fontSize: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#009adf',
+            width: 40,
+            height: 40,
+            color: 'white',
+            borderRadius: 22,
+            padding: 2
+          }}>
+          {' '}
+          {item.arrivalBay ? item.arrivalBay : ' '}{' '}
+        </Text>
+      </View>
+    </View>
+  </View>
+)
+
+const FeedbackShow = ({ item, login, style }) => (
+  <View style={style}>
+    {login.role !== 'Passenger' && (
+      <View style={{ flexDirection: 'row' }}>
+        <View
+          style={{
+            flex: 0.2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingRight: 20
+          }}>
+          <Text style={{ fontSize: 10, color: 'gray' }}> Rating: </Text>
+          <Text style={{ fontSize: 13 }}> {item.rating} </Text>
+        </View>
+        <View style={{ flex: 1, paddingLeft: 20 }}>
+          <Text style={{ fontSize: 10, color: 'gray' }}> Feedback: </Text>
+          <Text style={{ fontSize: 13 }}> {item.feedback ? item.feedback : ' '} </Text>
+        </View>
+      </View>
+    )}
+  </View>
+)
+
+export const CompleteTrip = props => (
+  <View style={props.style}>
+    {(props.login.role === 'Receiver' || props.login.role === 'Passenger' || props.login.role === 'Admin') &&
+      props.item.status !== 'Completed' && (
+        <View>
+          <Button
+            warning
+            style={{ alignSelf: 'stretch' }}
+            small
+            title="Complete Trip"
+            onPress={() => {
+              if (props.login.role === 'Passenger') props.navigation.push('FeedbackModal', { pickup: props.item })
+              if (props.login.role === 'Receiver')
+                props.doUpdatePickup(
+                  {
+                    _id: props.item._id,
+                    status: 'Completed',
+                    completedDate: new Date()
+                  },
+                  (err, message) => {
+                    if (err) Alert.alert('Failed to Update', err)
+                    else {
+                      Toast.show({
+                        text: 'Completed Successfully',
+                        buttonText: 'Ok',
+                        type: 'success',
+                        duration: 5000
+                      })
+                    }
+                  }
+                )
+            }}
+            style={{
+              alignSelf: 'stretch',
+              justifyContent: 'center',
+              borderColor: 'brown',
+              borderWidth: 1,
+              padding: 2
+            }}>
+            <Text>Complete Trip</Text>
+          </Button>
+        </View>
+      )}
   </View>
 )
 
@@ -179,7 +319,6 @@ class PickupList extends Component {
   componentWillMount() {
     this.props.dispatch({ type: 'PICKUP_RESET' })
     this.props.getPickups()
-    // setTimeout(() => Toast.show({ text: 'Wrong Password', buttonText: 'Ok', type: 'warning', duration: 10000 }), 2000)
   }
 
   isRefreshing() {
@@ -200,14 +339,13 @@ class PickupList extends Component {
             <Title>Pickup List</Title>
           </Body>
           <Right>
-            <Button transparent onPress={() => this.props.navigation.push('PickupForm')}>
-              <Icon name="ios-add" />
-            </Button>
+            {(this.props.login.role === 'Agent' || this.props.login.role === 'Admin') && (
+              <Button transparent onPress={() => this.props.navigation.push('PickupForm')}>
+                <Icon name="md-add-circle" />
+              </Button>
+            )}
             <Button transparent onPress={() => this.props.getPickups()}>
-              <Icon name="ios-refresh" />
-            </Button>
-            <Button transparent onPress={() => this.props.doLogout()}>
-              <Icon name="ios-log-out" />
+              <Icon name="md-refresh" />
             </Button>
           </Right>
         </Header>
@@ -254,99 +392,33 @@ class PickupList extends Component {
                         />
                       )}
                     </View>
+                    <CompleteTrip
+                      style={{
+                        alignSelf: 'stretch',
+                        width: '100%',
+                        borderTopColor: 'gray',
+                        borderTopWidth: 0.2,
+                        paddingTop: 5
+                      }}
+                      {...this.props}
+                      item={item}
+                    />
+                    <FeedbackShow
+                      style={{
+                        alignSelf: 'stretch',
+                        width: '100%',
+                        borderTopColor: 'gray',
+                        borderTopWidth: 0.2,
+                        paddingTop: 5
+                      }}
+                      {...this.props}
+                      item={item}
+                    />
                   </View>
                 </View>
               </TouchableHighlight>
             )}
           />
-          {/*
-          <View style={{ marginLeft: 5, marginRight: 5, marginTop: 5, marginBottom: 5 }}>
-            {this.props.pickups.map((item, index) => (
-              <Card>
-                <CardItem>
-                  <TouchableHighlight onPress={() => this.props.navigation.push('PickupForm', { pickup: item })}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingTop: 10,
-                        marginTop: 1,
-                        marginBottom: 1,
-                        paddingBottom: 10
-                      }}>
-                      <Text>One {item._id}</Text>
-                    </View>
-                  </TouchableHighlight>
-                </CardItem>
-              </Card>
-            ))}
-            <View style={{ marginBottom: 100 }} />
-            <Card
-              dataArray={this.props.pickups}
-              renderRow={(item, index) => (
-                <CardItem bordered>
-                  <TouchableHighlight onPress={() => this.props.navigation.push('PickupForm', { pickup: item })}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        paddingTop: 10,
-                        marginTop: 1,
-                        marginBottom: 1,
-                        paddingBottom: 10
-                      }}>
-                      <Text style={{ height: 100 }}>One {item._id}</Text>
-                    </View>
-                  </TouchableHighlight>
-                </CardItem>
-              )}
-            />
-          </View>
-          */}
-          {/*
-          <List>
-            {pickups.length === 0 && (
-              <ListItem>
-                <Body>
-                  <View>
-                    <Text style={{ color: 'gray', fontStyle: 'italic' }}>No Pickup List</Text>
-                  </View>
-                </Body>
-              </ListItem>
-            )}
-            {pickups.map((pickup, index) => (
-              <ListItem key={index} onPress={() => this.props.navigation.push('PickupForm', { pickup: pickup })}>
-                <Body>
-                  <View>
-                    <Text style={{ fontSize: 20, color: 'darkblue' }}>
-                      {pickup.flight} {pickup.name}
-                    </Text>
-                    <Text note style={{ color: 'gray' }}>
-                      {pickup.airport}
-                    </Text>
-                    <Text note style={{ color: 'green', fontStyle: 'italic' }}>
-                      Receiver: {pickup.receiverName} {pickup.receiverMobile}
-                    </Text>
-                    {pickup.completed !== 'Yes' && (
-                      <Button small danger onPress={() => this.props.doCompletePickup(pickup)}>
-                        <Text>Complete Pickup</Text>
-                      </Button>
-                    )}
-                    {pickup.completed === 'Yes' && (
-                      <Text note style={{ color: '#e75480', fontStyle: 'italic' }}>
-                        Completed at {moment(pickup.receiverComplete).format('Do-MMM hh:mm')}
-                      </Text>
-                    )}
-                  </View>
-                </Body>
-                <Right>
-                  <Text note style={{ color: '#e75480' }} />
-                  <Text note style={{ color: '#e75480' }}>
-                    Pickup {moment(pickup.pickupDate).format('Do-MMM  hh:mm')}
-                  </Text>
-                </Right>
-              </ListItem>
-            ))}
-          </List>
-            */}
         </Content>
       </Container>
     )
@@ -357,15 +429,20 @@ export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta', '
 )
 
 class _PickupView extends Component {
+  constructor(props) {
+    super(props)
+    this.markers = []
+    this.calloutShown = false
+  }
   static navigationOptions = {
     header: null
   }
   state = {
-    pickup: null
+    pickups: []
   }
 
   componentWillMount() {
-    this.setState({ pickup: this.props.navigation.getParam('pickup', null) })
+    this.setState({ pickups: [this.props.navigation.getParam('pickup', null)] })
   }
 
   isRefreshing() {
@@ -374,26 +451,42 @@ class _PickupView extends Component {
   }
 
   render() {
-    const pickupId = this.state.pickup ? this.state.pickup._id : undefined
+    const pickupId = this.state.pickups.length ? this.state.pickups[0]._id : undefined
+    const fromPosition = JSON.parse(this.state.pickups[0].fromPosition)
+    const toPosition = JSON.parse(this.state.pickups[0].toPosition)
+    const flightPosition = this.state.pickups[0].position ? JSON.parse(this.state.pickups[0].position) : null
+    const region = utils.getRegionForCoordinates([fromPosition, toPosition])
     return (
       <Container>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="ios-arrow-dropleft" onPress={() => this.props.navigation.goBack()} />
+              <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
             </Button>
           </Left>
           <Body>
             <Title>Pickup View</Title>
           </Body>
+          <Right>
+            <Button
+              transparent
+              onPress={() =>
+                pickupId &&
+                this.props.getPickups(pickupId, pickup => {
+                  this.setState({ pickups: [pickup] })
+                })
+              }>
+              <Icon name="md-refresh" />
+            </Button>
+          </Right>
         </Header>
         <Content>
           <FlatList
-            data={[this.state.pickup]}
+            data={this.state.pickups}
             refreshing={this.isRefreshing()}
             onRefresh={() =>
               this.props.getPickups(pickupId, pickup => {
-                this.setState({ pickup: pickup })
+                this.setState({ pickups: [pickup] })
               })
             }
             keyExtractor={(item, index) => item._id}
@@ -403,30 +496,116 @@ class _PickupView extends Component {
               </View>
             )}
             renderItem={({ item, index, separators }) => (
-              <Card>
-                <View style={{ padding: 5, margin: 6, backgroundColor: '#F8F8F8' }}>
-                  <CardItem bordered>
-                    <FlightScheduleInfo style={{ flex: 1 }} item={item} />
-                  </CardItem>
-                  <CardItem bordered>
-                    <PickupMetaInfo style={{ flex: 1 }} item={item} />
-                  </CardItem>
-                  <CardItem bordered>
-                    <ProfileInfo
-                      style={{ flex: 1, borderRightWidth: 0, borderRightColor: 'gray', paddingRight: 10 }}
-                      item={{ ...item, receiverId: item.receiveId, item: item }}
-                      who="Passenger"
-                    />
-                  </CardItem>
-                  <CardItem bordered>
-                    <ProfileInfo
-                      style={{ flex: 1, paddingLeft: 5 }}
-                      item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
-                      who="Receiver"
-                    />
-                  </CardItem>
-                </View>
-              </Card>
+              <View style={{ flex: 1 }}>
+                <Card>
+                  <View style={{ padding: 5, margin: 6, backgroundColor: '#F8F8F8' }}>
+                    <CardItem bordered>
+                      <FlightScheduleInfo style={{ flex: 1 }} item={item} />
+                    </CardItem>
+                    <CardItem bordered>
+                      <PickupMetaInfo style={{ flex: 1 }} item={item} />
+                    </CardItem>
+                    <CardItem bordered>
+                      <ArrivalBay style={{ flex: 1 }} item={item} />
+                    </CardItem>
+                    <CardItem bordered>
+                      <ProfileInfo
+                        style={{ flex: 1, borderRightWidth: 0, borderRightColor: 'gray', paddingRight: 10 }}
+                        item={{ ...item, receiverId: item.receiveId, item: item }}
+                        who="Passenger"
+                        navigation={this.props.navigation}
+                      />
+                    </CardItem>
+                    <CardItem bordered>
+                      <ProfileInfo
+                        style={{ flex: 1, paddingLeft: 5 }}
+                        item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
+                        who="Receiver"
+                        navigation={this.props.navigation}
+                      />
+                    </CardItem>
+                    <CardItem bordered>
+                      <FlightStatus
+                        style={{ flex: 1, paddingLeft: 5 }}
+                        item={item}
+                        navigation={this.props.navigation}
+                      />
+                    </CardItem>
+                    <CardItem bordered>
+                      <CompleteTrip
+                        style={{
+                          alignSelf: 'stretch',
+                          width: '100%',
+                          paddingTop: 5
+                        }}
+                        {...this.props}
+                        item={item}
+                      />
+                    </CardItem>
+                    <CardItem bordered>
+                      <FeedbackShow
+                        style={{
+                          alignSelf: 'stretch',
+                          width: '100%',
+                          paddingTop: 5
+                        }}
+                        {...this.props}
+                        item={item}
+                      />
+                    </CardItem>
+                    <CardItem bordered>
+                      <MapView
+                        style={{
+                          alignSelf: 'stretch',
+                          borderColor: '#cccccc',
+                          borderWidth: 0.5,
+                          height: 400,
+                          width: '90%'
+                        }}
+                        onRegionChangeComplete={() => {
+                          console.log('on region change list', typeof this.markers)
+                          /*
+                          if (!this.calloutShown) {
+                            this.markers.forEach(m => m.showCallout())
+                            this.calloutShown = true
+                          }
+                          */
+                        }}
+                        initialRegion={region}>
+                        <MapView.Marker
+                          ref={marker => this.markers.push(marker)}
+                          coordinate={fromPosition}
+                          title={item.fromCity}
+                          image={OrangeMarker}
+                          description={item.fromAirport.substr(0, 10) + '...'}
+                        />
+                        <MapView.Marker
+                          ref={marker => this.markers.push(marker)}
+                          coordinate={toPosition}
+                          title={item.toCity}
+                          image={OrangeMarker}
+                          description={item.toAirport.substr(0, 10) + '...'}
+                        />
+                        <MapView.Polyline
+                          strokeColor="#FF3F5D"
+                          strokeWidth={1}
+                          coordinates={[fromPosition, toPosition]}
+                          geodesic={true}
+                        />
+                        {flightPosition && (
+                          <MapView.Marker
+                            ref={marker => this.markers.push(marker)}
+                            coordinate={flightPosition}
+                            title={item.flight}
+                            image={FlightMarker}
+                            description={item.carrierName + ' ' + item.flight}
+                          />
+                        )}
+                      </MapView>
+                    </CardItem>
+                  </View>
+                </Card>
+              </View>
             )}
           />
         </Content>

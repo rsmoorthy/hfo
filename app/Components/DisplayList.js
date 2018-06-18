@@ -47,10 +47,7 @@ class DisplayList extends Component {
           </Body>
           <Right>
             <Button transparent onPress={() => this.props.getPickups()}>
-              <Icon name="ios-refresh" />
-            </Button>
-            <Button transparent onPress={() => this.props.doLogout()}>
-              <Icon name="ios-log-out" />
+              <Icon name="md-refresh" />
             </Button>
           </Right>
         </Header>

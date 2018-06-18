@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 
 var TemplatesSchema = new mongoose.Schema({
-  type: { type: String, enum: ['SMS', 'Email'] },
+  type: { type: String, enum: ['SMS', 'Email', 'Notification'] },
   name: String,
   template: String,
   created_at: { type: Date },

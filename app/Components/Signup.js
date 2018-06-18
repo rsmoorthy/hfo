@@ -44,7 +44,7 @@ const options = {
       default: 'Passenger'
     },
     id: {
-      hidden: false
+      hidden: true
     },
     otp: {
       label: 'Enter OTP',

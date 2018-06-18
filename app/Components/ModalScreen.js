@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { View, StatusBar, StyleSheet } from 'react-native'
+import { View, StatusBar, StyleSheet, Alert } from 'react-native'
 import moment from 'moment'
-
+import t from 'tcomb-form-native' // 0.6.9
+import StarRating from 'react-native-star-rating'
 import {
   Container,
   Content,
@@ -19,12 +20,15 @@ import {
   Button,
   Text,
   StyleProvider,
+  Toast,
   Badge
 } from 'native-base'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
 // import getTheme from '../../native-base-theme/components'
 // import material from '../../native-base-theme/variables/material'
 // import platform from '../../native-base-theme/variables/platform'
+import R from 'ramda'
+const Form = t.form.Form
 
 class ModalScreen extends Component {
   componentDidMount() {
@@ -46,6 +50,143 @@ class ModalScreen extends Component {
   }
 }
 export default connect(utils.mapStateToProps('hfo', ['meta']), utils.mapDispatchToProps)(ModalScreen)
+
+class _FeedbackModal extends Component {
+  static navigationOptions = {
+    header: null
+  }
+
+  getType = () => {
+    return t.struct({
+      _id: t.String,
+      rating: t.maybe(t.Number),
+      status: t.String,
+      feedback: t.maybe(t.String)
+    })
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      type: this.getType(),
+      value: {
+        _id: '',
+        status: 'Completed',
+        rating: 0,
+        feedback: ''
+      },
+      options: {
+        fields: {
+          _id: { hidden: true, editable: false },
+          status: { hidden: true, editable: false },
+          rating: { hidden: true, editable: false },
+          feedback: {
+            label: 'Feedback',
+            placeholder: 'Provide your valuable Feedback',
+            multiline: true,
+            stylesheet: {
+              ...Form.stylesheet,
+              textbox: {
+                ...Form.stylesheet.textbox,
+                normal: {
+                  ...Form.stylesheet.textbox.normal,
+                  height: 100,
+                  textAlignVertical: 'top',
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                  padding: 5
+                },
+                error: {
+                  ...Form.stylesheet.textbox.error,
+                  height: 100,
+                  textAlignVertical: 'top',
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                  padding: 5
+                }
+              }
+            },
+            numberOfLines: 8
+          }
+        },
+        stylesheet: utils.formStyles
+      }
+    }
+  }
+
+  handleSubmit = () => {
+    const value = this._form.getValue()
+    console.log('value', value)
+    if (value) {
+      this.state.value = value
+      if (value._id) {
+        this.props.doUpdatePickup(value, (err, message) => {
+          if (err) Alert.alert('Failed to submit Feedback', err)
+          else {
+            Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 1500 })
+            this.props.navigation.goBack()
+          }
+        })
+      }
+    }
+  }
+
+  componentWillMount() {
+    const pickup = this.props.navigation.getParam('pickup', null)
+    console.log(pickup, pickup.status, pickup.rating)
+    if (pickup) {
+      this.setState({
+        value: {
+          _id: pickup._id,
+          status: pickup.status ? pickup.status : 'Completed',
+          rating: pickup.rating === undefined || pickup.rating === null ? 0 : pickup.rating,
+          feedback: pickup.feedback
+        }
+      })
+    }
+  }
+
+  componentDidMount() {
+    this.props.setOpacity(0.1)
+  }
+
+  componentWillUnmount() {
+    this.props.setOpacity(1.0)
+  }
+
+  render() {
+    const pickup = this.props.navigation.getParam('pickup', null)
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '80%', borderRadius: 8, borderWidth: 1 }}>
+          <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
+          <View style={{ padding: 20, width: '100%', alignSelf: 'stretch' }}>
+            <StarRating
+              disabled={false}
+              maxStars={5}
+              rating={this.state.value.rating}
+              selectedStar={rating => this.setState({ value: { ...this.state.value, rating: rating } })}
+            />
+            <Form
+              ref={c => (this._form = c)}
+              type={this.state.type}
+              value={this.state.value}
+              options={this.state.options}
+            />
+          </View>
+          <Button info block title="Submit Feedback" style={{ width: '100%' }} onPress={this.handleSubmit}>
+            <Text> Submit Feedback </Text>
+          </Button>
+        </View>
+      </View>
+    )
+  }
+}
+
+export const FeedbackModal = connect(
+  utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']),
+  utils.mapDispatchToProps
+)(_FeedbackModal)
 
 const styles = StyleSheet.create({
   container: {

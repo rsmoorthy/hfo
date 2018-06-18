@@ -13,9 +13,12 @@ var PickupsSchema = new mongoose.Schema({
   carrierName: String,
   carrierICAO: String,
   pickupDate: Date,
-  completed: String,
+  completedDate: Date,
   receiverCompleted: Date,
   passengerCompleted: Date,
+
+  feedback: String,
+  rating: Number,
 
   fromCode: String,
   fromAirport: String,
@@ -28,6 +31,9 @@ var PickupsSchema = new mongoose.Schema({
   scheduledDeparture: Date,
   scheduledArrival: Date,
 
+  position: String,
+  flightStatsLastUpdated: Date,
+
   cancelled: String,
   flightStatus: String,
   flightProgress: String,
@@ -36,10 +42,13 @@ var PickupsSchema = new mongoose.Schema({
   etaArrival: Date,
   departureDelay: String,
   arrivalDelay: String,
+  flightAwareLastUpdated: Date,
 
+  arrivalBay: String,
   status: { type: String, enum: ['New', 'Assigned', 'Arrived', 'Completed'] },
   sentInitialMailSMS: Date,
   sentReminderMailSMS: Date,
+  completedMailSMS: Date,
   updated_at: { type: Date, default: Date.now }
 })
 

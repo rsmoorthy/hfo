@@ -40,10 +40,8 @@ router.get('/photo/:id', async (req, res, next) => {
   var id = req.params.id
 
   var ret = await Users.findById(id, { photo: 1 }).exec()
-  console.log(ret.photo.substr(0, 30))
   if (ret && ret.photo && ret.photo.length && ret.photo.substr(0, 4) === 'data') {
     let photo = ret.photo.replace(/^data:image\/jpeg;base64,/, '')
-    console.log(photo.substr(0, 20))
     res.contentType('image/jpeg')
     return res.send(Buffer.from(photo, 'base64'))
   }

@@ -85,7 +85,7 @@ class UserForm extends Component {
       <Container>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
-            {/* <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} /> */}
+            {/* <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} /> */}
             <Button transparent>
               <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
@@ -93,9 +93,6 @@ class UserForm extends Component {
           <Body>
             <Title>User Data</Title>
           </Body>
-          <Right>
-            <Icon name="ios-log-out" onPress={() => this.props.doLogout()} />
-          </Right>
         </Header>
         <Content>
           <View style={styles.container}>

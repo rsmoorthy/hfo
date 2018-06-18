@@ -4,6 +4,7 @@ var axios = require('axios')
 var rp = require('request-promise-native')
 var R = require('ramda')
 var utils = require('../utils')
+var flightaware = require('../services/flightaware')
 
 var cache = { time: 0, data: [] }
 
@@ -13,11 +14,16 @@ router.get('/', async function(req, res, next) {
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
 
   console.log(cache.time)
-  if (new Date().getTime() - cache.time < 6000 * 1000) {
+  if (new Date().getTime() - cache.time < 300 * 1000) {
     console.log('returning cached date')
     res.json(cache.data)
-    return
+  } else {
+    var resp = await flightaware.getAirportBoards()
+    cache.time = new Date().getTime()
+    cache.data = resp
+    res.json(resp)
   }
+  /*
   rp
     .post({
       uri: 'https://flightxml.flightaware.com/json/FlightXML3/AirportBoards',
@@ -58,6 +64,7 @@ router.get('/', async function(req, res, next) {
       res.json(flights)
     })
     .catch(err => console.log('rp error', err))
+  */
 
   /*
   res.json([

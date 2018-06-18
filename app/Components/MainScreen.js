@@ -16,8 +16,7 @@ import Signup from './Signup'
 import PickupForm, { AssignReceiverModal, RequestPickup } from './PickupForm'
 import PickupList, { PickupView } from './PickupList'
 import AdminScreen, { AdminTemplatesList, AdminTemplatesForm } from './AdminScreen'
-import CameraView from './CameraView'
-import ModalScreen from './ModalScreen'
+import ModalScreen, { FeedbackModal } from './ModalScreen'
 import GetPhotoModal from './GetPhotoModal'
 import DisplayTab from './AppTabNavigator/DisplayTab'
 import { connect } from 'react-redux'
@@ -31,7 +30,6 @@ import {
   TabNavigator,
   createStackNavigator,
   createDrawerNavigator,
-  createTabNavigator,
   createBottomTabNavigator,
   createSwitchNavigator
 } from 'react-navigation'
@@ -124,7 +122,16 @@ class MainScreen extends Component {
   _handleNotification = notification => {
     notification.data.time = new Date()
     console.log('notification received', notification)
-    this.props.doReceiveNotification(notification.data)
+    this.props.doReceiveNotification({
+      ...notification.data,
+      notificationId: notification.notificationId,
+      remote: notification.remote
+    })
+    if (notification.data.id) {
+      this.props.getPickups(notification.data.id, item => {
+        this.props.navigation.push('PickupView', { pickup: item })
+      })
+    }
   }
 
   // static navigationOptions = {
@@ -168,7 +175,7 @@ class MainScreen extends Component {
             }
           },
           FlightArrivals: FlightArrivals,
-          PassengerArrivalsTab: PassengerArrivalsTab,
+          // PassengerArrivalsTab: PassengerArrivalsTab,
           Profile: Profile
         },
         navigationOptions
@@ -191,7 +198,7 @@ class MainScreen extends Component {
     } else if (this.props.login.role === 'Passenger') {
       userStack = createDrawerNavigator(
         {
-          PassengerHome: PassengerHome,
+          Home: PassengerHome,
           RequestPickup: RequestPickup,
           Profile: Profile
         },
@@ -206,7 +213,6 @@ class MainScreen extends Component {
           showIcon: false
         }
       }
-      console.log(noptions)
       userStack = createDrawerNavigator(
         {
           DisplayList: DisplayList
@@ -216,14 +222,6 @@ class MainScreen extends Component {
     } else if (this.props.login.role === 'Admin') {
       userStack = createDrawerNavigator(
         {
-          Admin: {
-            screen: adminScreensStack,
-            navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
-              drawerIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
-              header: null
-            }
-          },
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
@@ -240,6 +238,14 @@ class MainScreen extends Component {
             }
           },
           Profile: Profile,
+          Admin: {
+            screen: adminScreensStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
+              header: null
+            }
+          },
           // CameraView: CameraView,
           FlightArrivals: FlightArrivals
         },
@@ -262,7 +268,8 @@ class MainScreen extends Component {
         Main: MyAppNavigator,
         Modal: ModalScreen,
         GetPhotoModal: GetPhotoModal,
-        AssignReceiverModal: AssignReceiverModal
+        AssignReceiverModal: AssignReceiverModal,
+        FeedbackModal: FeedbackModal
       },
       {
         mode: 'modal',
@@ -354,6 +361,7 @@ class AuthLoading extends React.Component {
   }
 }
 
+/*
 const AppStack = createTabNavigator({ Home: HomeScreen2, Other: OtherScreen2 })
 const AuthStack = createTabNavigator({ SignIn: SignInScreen2, SignOut: SignOutScreen2 })
 const MainScreen2 = createSwitchNavigator(
@@ -371,9 +379,11 @@ const MainScreen3 = createDrawerNavigator({
   App: AppStack,
   Auth: AuthStack
 })
+*/
 
 export default connect(utils.mapStateToProps('hfo', ['login']), utils.mapDispatchToProps)(MainScreen)
 
+/*
 const AppTabNavigator = createTabNavigator(
   {
     Login: {
@@ -420,6 +430,7 @@ const AppTabNavigator = createTabNavigator(
     }
   }
 )
+*/
 
 const styles = StyleSheet.create({
   container: {

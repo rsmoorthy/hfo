@@ -73,7 +73,7 @@
 
   <!-- HIDDEN PREHEADER TEXT -->
   <div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: 'Lato', Helvetica, Arial, sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
-    You will be received by <%= receiver.name %> <%= receiver.mobile %>
+    Your trip was completed on <%= completedDate %> by <%= receiver.name %>
   </div>
 
   <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -97,7 +97,7 @@
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;" >
       <tr>
         <td bgcolor="#ffffff" align="center" valign="top" style="padding: 10px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 100; line-height: 48px;">
-          <h6 style="font-size: 16px; margin: 0;">Your Pickup Details at <%= airport %> airport </h6>
+          <h6 style="font-size: 16px; margin: 0;">Trip completed</h6>
         </td>
       </tr>
     </table>
@@ -116,14 +116,9 @@
       <!-- COPY -->
       <tr>
         <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 10px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
-          <p style="margin: 0;">Welcome to <%= airport %>.</p>
-        </td>
-      </tr>
-      <!-- COPY -->
-      <tr>
-        <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 10px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;" >
-          <p style="margin: 0;"><b><%= receiver.name %></b> will receive you at Departure Exit Bay - Digital Screen No
-            <span style="padding: 10px; font-size: 18px; font-weight: 800; background-color: #0094d7; color: white; border-color: black; border-width: 1px; border-radius: 22px"><%= arrivalBay %></span></p>
+          <p style="margin: 0;">
+            Your trip was completed on <%= completedDate %> by <%= receiver.name %>
+          </p>
         </td>
       </tr>
       <!-- BULLETPROOF BUTTON -->
@@ -136,7 +131,7 @@
                     <td align="left" style="padding-left: 20px"><%= carrierName %> <%= flight %> </td>
                   </tr>
                   <tr style="border: 1px solid #ddd; background-color: #ddd">
-                    <td align="right">Date and Time</td>
+                    <td align="right">Flight Arrival at</td>
                     <td align="left" style="padding-left: 20px"><%= pickupDate %></td>
                   </tr>
                   <tr style="border: 1px solid #ddd">

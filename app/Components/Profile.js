@@ -89,19 +89,19 @@ class Profile extends Component {
     } else if (this.state.activeIndex === 1) {
       return (
         <View>
-          <Text>Dummy</Text>
+          <Text />
         </View>
       )
     } else if (this.state.activeIndex === 2) {
       return (
         <View>
-          <Text>Dummy</Text>
+          <Text />
         </View>
       )
     } else if (this.state.activeIndex === 3) {
       return (
         <View>
-          <Text>Dummy</Text>
+          <Text />
         </View>
       )
     }
@@ -122,7 +122,7 @@ class Profile extends Component {
             </Button>
           </Left>
           <Body>
-            <Text style={{ fontSize: 20, color: 'white' }}>Profile History</Text>
+            <Text style={{ fontSize: 20, color: 'white' }}>Profile</Text>
           </Body>
           <Right>
             <Button transparent onPress={() => this.props.doLogout()}>
@@ -152,55 +152,35 @@ class Profile extends Component {
                     alignItems: 'flex-end'
                   }}>
                   <View style={{ alignItems: 'center' }}>
-                    <Text>4.5</Text>
+                    <Text>{this.props.login.rating ? this.props.login.rating : 'n/a'}</Text>
                     <Text style={{ fontSize: 10, color: 'grey' }}>Rating</Text>
                   </View>
                   <View style={{ alignItems: 'center' }}>
-                    <Text>123</Text>
-                    <Text style={{ fontSize: 10, color: 'grey' }}>Received</Text>
+                    <Text>{this.props.login.pickups ? this.props.login.pickups : 0}</Text>
+                    <Text style={{ fontSize: 10, color: 'grey' }}>Pickups</Text>
                   </View>
                   <View style={{ alignItems: 'center' }}>
-                    <Text>5 days back</Text>
+                    <Text>{this.props.login.lastSeen ? utils.lastSeen(this.props.login.lastSeen) : 'never'}</Text>
                     <Text style={{ fontSize: 10, color: 'grey' }}>Last seen</Text>
                   </View>
                 </View>
 
-                {/** Edit profile and Settings Buttons **/}
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingTop: 10 }}>
-                  <View style={{ flexDirection: 'row' }}>
-                    {/** Edit profile takes up 3/4th **/}
-                    <Button
-                      bordered
-                      dark
-                      onPress={() => this.props.navigation.navigate('Modal')}
-                      style={{ flex: 3, marginLeft: 10, justifyContent: 'center', height: 30 }}>
-                      <Text>Edit Profile</Text>
-                    </Button>
-
-                    {/** Settings takes up  1/4th place **/}
-                    <Button
-                      bordered
-                      dark
-                      onPress={() => this.props.doLogout()}
-                      style={{
-                        flex: 1,
-                        height: 30,
-                        marginRight: 10,
-                        marginLeft: 5,
-                        justifyContent: 'center'
-                      }}>
-                      <Icon name="settings" style={{ color: 'black' }} />
-                    </Button>
-                  </View>
+                <View style={{ flex: 1, alignItems: 'flex-start', padding: 20, marginTop: 20 }}>
+                  <Text style={{ fontSize: 16 }}>{this.props.login.name}</Text>
+                  {this.props.login.email && (
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon name="ios-mail-outline" style={{ fontSize: 16 }} />
+                      <Text style={{ fontSize: 16, marginLeft: 5, color: 'green' }}>{this.props.login.email}</Text>
+                    </View>
+                  )}
+                  {this.props.login.mobile && (
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon name="ios-phone-portrait" style={{ fontSize: 16 }} />
+                      <Text style={{ fontSize: 16, marginLeft: 5, color: 'green' }}>{this.props.login.mobile}</Text>
+                    </View>
+                  )}
+                  <Text>{this.props.login.role}</Text>
                 </View>
-                {/** End edit profile**/}
-              </View>
-            </View>
-
-            <View style={{ paddingBottom: 10 }}>
-              <View style={{ paddingHorizontal: 10 }}>
-                <Text style={{ fontWeight: 'bold' }}>{this.props.login.name}</Text>
-                <Text>{this.props.login.role}</Text>
               </View>
             </View>
           </View>

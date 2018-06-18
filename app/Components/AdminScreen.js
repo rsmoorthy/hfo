@@ -54,7 +54,13 @@ class AdminScreen extends Component {
         screen: 'AdminTemplatesList',
         screenParams: { type: 'SMS' }
       },
-      { icon: 'ios-mail', text: 'Email Templates', screen: 'AdminTemplatesList', screenParams: { type: 'Email' } }
+      { icon: 'ios-mail', text: 'Email Templates', screen: 'AdminTemplatesList', screenParams: { type: 'Email' } },
+      {
+        icon: 'ios-notifications-outline',
+        text: 'Notification Templates',
+        screen: 'AdminTemplatesList',
+        screenParams: { type: 'Notification' }
+      }
     ]
     return (
       <Container>
@@ -114,7 +120,7 @@ class _AdminTemplatesList extends Component {
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+              <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
             </Button>
           </Left>
           <Body>
@@ -128,7 +134,15 @@ class _AdminTemplatesList extends Component {
         </Header>
         <Content>
           <FlatList
-            data={p.type === 'SMS' ? this.props.smsTemplates : this.props.emailTemplates}
+            data={
+              p.type === 'SMS'
+                ? this.props.smsTemplates
+                : p.type === 'Email'
+                  ? this.props.emailTemplates
+                  : p.type === 'Notification'
+                    ? this.props.notificationTemplates
+                    : []
+            }
             refreshing={this.props.meta.adminInProgress}
             onRefresh={() => this.getTemplates()}
             keyExtractor={(item, index) => item._id}
@@ -156,7 +170,7 @@ class _AdminTemplatesList extends Component {
 }
 
 export const AdminTemplatesList = connect(
-  utils.mapStateToProps('hfo', ['login', 'meta', 'smsTemplates', 'emailTemplates']),
+  utils.mapStateToProps('hfo', ['login', 'meta', 'smsTemplates', 'emailTemplates', 'notificationTemplates']),
   utils.mapDispatchToProps
 )(_AdminTemplatesList)
 
@@ -167,9 +181,10 @@ class _AdminTemplatesForm extends Component {
 
   getType = () => {
     const template = this.props.navigation.getParam('template', null)
+    const names = ['OTP', 'WelcomePassenger', 'NotifyReceiver', 'PassengerTripCompleted', 'ReceiverTripCompleted']
     const struct = {
-      type: t.enums({ SMS: 'SMS', Email: 'Email' }),
-      name: t.String,
+      type: t.enums({ SMS: 'SMS', Email: 'Email', Notification: 'Notification' }),
+      name: t.enums(R.zipObj(names, names)),
       template: t.String
     }
     if (template) return t.struct({ _id: t.String, ...struct })
@@ -189,8 +204,11 @@ class _AdminTemplatesForm extends Component {
       },
       options: {
         fields: {
-          _id: { hidden: true },
-          type: { hidden: true },
+          _id: { hidden: false },
+          type: { hidden: false },
+          name: {
+            template: require('../utils/select.android')
+          },
           template: {
             multiline: true,
             stylesheet: {
@@ -245,11 +263,16 @@ class _AdminTemplatesForm extends Component {
           }
         })
     }
+    console.log('value', value)
   }
 
   componentWillMount() {
     const template = this.props.navigation.getParam('template', null)
-    this.setState({ value: template })
+    const type = this.props.navigation.getParam('type', null)
+    if (template) this.setState({ value: template })
+    else {
+      this.setState({ value: { ...this.state.value, type: type } })
+    }
   }
 
   render() {
@@ -260,7 +283,7 @@ class _AdminTemplatesForm extends Component {
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
             <Button transparent>
-              <Icon name="ios-arrow-back" onPress={() => this.props.navigation.goBack()} />
+              <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
             </Button>
           </Left>
           <Body>

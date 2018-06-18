@@ -167,7 +167,10 @@ router.post('/login', async function(req, res, next) {
       email: ret.email,
       mobile: ret.mobile,
       photo: utils.getPhotoUrl(ret._id, ret.photo),
-      role: ret.role
+      role: ret.role,
+      pickups: ret.pickups,
+      rating: ret.rating,
+      lastSeen: ret.lastSeen
     }
   })
 })

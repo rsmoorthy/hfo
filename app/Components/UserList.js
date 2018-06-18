@@ -33,7 +33,7 @@ export const UserRatingInfo = ({ item, style }) => (
         <Text style={{ fontSize: 10, color: 'grey' }}>Rating</Text>
       </View>
       <View style={{ alignItems: 'center' }}>
-        <Text>{item.totalPickups ? item.totalPickups : 0}</Text>
+        <Text>{item.pickups ? item.pickups : 0}</Text>
         <Text style={{ fontSize: 10, color: 'grey' }}>Pickups</Text>
       </View>
       <View style={{ alignItems: 'center' }}>
@@ -72,10 +72,7 @@ class _UserList extends Component {
           </Body>
           <Right>
             <Button transparent onPress={() => this.props.getUserList()}>
-              <Icon name="ios-refresh" />
-            </Button>
-            <Button transparent onPress={() => this.props.doLogout()}>
-              <Icon name="ios-log-out" />
+              <Icon name="md-refresh" />
             </Button>
           </Right>
         </Header>

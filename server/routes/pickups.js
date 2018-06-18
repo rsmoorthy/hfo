@@ -7,9 +7,12 @@ var Users = require('../models/Users')
 var R = require('ramda')
 var utils = require('../utils')
 var flightstats = require('../services/flightstats')
+var flightaware = require('../services/flightaware')
 var sms = require('../services/sms')
 var email = require('../services/email')
+var notifications = require('../services/notifications')
 var ejs = require('ejs')
+var moment = require('moment')
 
 var cache = { time: 0, data: [] }
 
@@ -39,9 +42,6 @@ router.get('/:id?', async function(req, res, next) {
           p2.mobile = u.mobile
           p2.email = u.email
           p2.photo = u.photo ? utils.getPhotoUrl(p.passengerId, u.photo) : ''
-          p2.rating = u.rating
-          p2.pickups = u.pickups
-          p2.testing = 1
         }
       } else if (p.passengerId === null) {
       }
@@ -55,6 +55,34 @@ router.get('/:id?', async function(req, res, next) {
           photo: u.photo ? utils.getPhotoUrl(p.receiverId, u.photo) : '',
           rating: u.rating,
           pickups: u.pickups
+        }
+      }
+      if (
+        moment().diff(p2.scheduledDeparture, 'minutes') > 0 &&
+        moment().date() === moment(p2.scheduledDeparture).date() &&
+        p2.flightProgress !== '100'
+      ) {
+        let [e, ret] = await flightstats.getFlightTrack(p2.flight)
+        if (ret && ret.position) {
+          p2.position = ret.position
+          await Pickups.findByIdAndUpdate(p2._id, { position: p2.position, flightStatsLastUpdated: new Date() })
+        }
+        let [e2, ret2] = await flightaware.getFlightInfoStatus(
+          p2.carrierICAO ? p2.carrierICAO + p2.flight.substr(2) : p2.flight
+        )
+        if (ret2) {
+          p2.flightStatus = ret2.status
+          p2.flightProgress = ret2.progress
+          p2.actualDeparture = ret2.actualDeparture
+          p2.actualArrival = ret2.actualArrival
+          p2.etaArrival = ret2.etaArrival
+          await Pickups.findByIdAndUpdate(p2._id, {
+            flightStatus: p2.flightStatus,
+            flightProgress: p2.flightProgress,
+            actualArrival: p2.actualArrival,
+            etaArrival: p2.etaArrival,
+            flightAwareLastUpdated: new Date()
+          })
         }
       }
       return p2
@@ -73,6 +101,7 @@ router.post('/', async function(req, res, next) {
   let [err, iret, fl] = await updateFlightSchedule(inp)
   if (err) return res.json({ status: 'error', message: err })
   inp = { ...iret }
+  inp.status = inp.receiverId ? 'Assigned' : 'New'
 
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
@@ -83,6 +112,7 @@ router.post('/', async function(req, res, next) {
     ret = await Users.findOne(q).exec()
     if (ret) inp.passengerId = ret._id
   }
+  if (inp.receiverId) inp.arrivalBay = getArrivalBay()
   var newPickup = new Pickups(inp)
   ret = await newPickup.save()
   if (ret._id) {
@@ -91,6 +121,8 @@ router.post('/', async function(req, res, next) {
       await sms.smsSend('WelcomePassenger', row)
       await email.emailSend('WelcomePassenger', row)
       await sms.smsSend('NotifyReceiver', row)
+      await notifications.notificationSend('WelcomePassenger', row, row.passengerId)
+      await notifications.notificationSend('NotifyReceiver', row, row.receiverId)
       await Pickups.findByIdAndUpdate(ret._id, { sentInitialMailSMS: new Date() })
     }
     return res.json({ status: 'ok', id: ret._id, message: fl.message, flight: fl })
@@ -117,6 +149,8 @@ router.put('/:id', async function(req, res, next) {
     inp = { ...iret }
   }
 
+  if (inp.receiverId && !rec.arrivalBay) inp.arrivalBay = getArrivalBay()
+
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
     let q = {}
@@ -128,12 +162,16 @@ router.put('/:id', async function(req, res, next) {
 
   ret = await Pickups.findByIdAndUpdate(id, inp).exec()
   if (ret) {
-    if (ret.receiverId && !ret.sentInitialMailSMS) {
+    if (ret.receiverId && !ret.sentInitialMailSMS && (ret.status === 'New' || ret.status === 'Assigned')) {
       let row = await constructRecord(ret)
       await sms.smsSend('WelcomePassenger', row)
       await email.emailSend('WelcomePassenger', row)
       await sms.smsSend('NotifyReceiver', row)
-      await Pickups.findByIdAndUpdate(ret._id, { sentInitialMailSMS: new Date() })
+      await notifications.notificationSend('WelcomePassenger', row, row.passengerId)
+      await notifications.notificationSend('NotifyReceiver', row, row.receiverId)
+      let upd = { sentInitialMailSMS: new Date() }
+      if (ret.receiverId && ret.status === 'New') upd.status = 'Assigned'
+      await Pickups.findByIdAndUpdate(ret._id, upd)
     }
     return res.json({ status: 'ok' })
   }
@@ -147,13 +185,41 @@ router.put('/complete/:id', async function(req, res, next) {
 
   var inp = req.body
   var id = req.params.id
-  var ret
+  var ret, row
 
-  var upd = { receiverCompleted: new Date(), completed: 'Yes' }
+  row = await Pickups.findById(id).exec()
+  var upd = {}
+  if (row.status !== 'Completed') {
+    upd.status = 'Completed'
+    upd.completedDate = new Date()
+  }
+  if (row.receiverId === user._id && !row.receiverCompleted) upd.receiverCompleted = new Date()
+  if (row.passengerId === user._id && !row.passengerCompleted) upd.passengerCompleted = new Date()
 
   ret = await Pickups.findByIdAndUpdate(id, upd).exec()
-  if (ret) return res.json({ status: 'ok' })
-  res.json({ status: 'error', message: 'Unable to complete' })
+  if (!ret) return res.json({ status: 'error', message: 'Unable to update record' })
+
+  // Increment pickups
+  if (row.status !== 'Completed') {
+    if (row.passengerId) await Users.findByIdAndUpdate(row.passengerId, { $inc: { pickups: 1 } }).exec()
+    if (row.receiverId) await Users.findByIdAndUpdate(row.receiverId, { $inc: { pickups: 1 } }).exec()
+    if (!row.completedMailSMS) {
+      let row = await constructRecord(ret)
+      await sms.smsSend('PassengerTripCompleted', row)
+      await sms.smsSend('ReceiverTripCompleted', row)
+      await email.emailSend('PassengerTripCompleted', row)
+      await notifications.notificationSend('PassengerTripCompleted', row, row.passengerId)
+      await notifications.notificationSend('ReceiverTripCompleted', row, row.receiverId)
+      await notifications.notificationSend('ReceiverTripCompleted', row, row.agentId)
+      await Pickups.findByIdAndUpdate(row._id, { completedMailSMS: new Date() })
+    }
+  }
+  if (inp.rating && row.receiverId) {
+    let urow = Users.findById(row.receiverId).exec()
+    let newrating = ((urow.rating ? urow.rating : 0) + inp.rating) * urow.pickups
+    await Users.findByIdAndUpdate(row.receiverId, { rating: newrating }).exec()
+  }
+  return res.json({ status: 'ok' })
 })
 
 const constructRecord = async row => {
@@ -167,9 +233,6 @@ const constructRecord = async row => {
       p.mobile = u.mobile
       p.email = u.email
       p.photo = u.photo ? utils.getPhotoUrl(p.passengerId, u.photo) : ''
-      p.rating = u.rating
-      p.pickups = u.pickups
-      p.testing = 1
     }
   } else if (p.passengerId === null) {
   }
@@ -213,6 +276,10 @@ const updateFlightSchedule = async inp => {
   inp.toPosition = JSON.stringify(fl.toPosition)
 
   return [null, inp, fl]
+}
+
+const getArrivalBay = async pickupDate => {
+  return 'A1'
 }
 
 module.exports = router

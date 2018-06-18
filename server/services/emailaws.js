@@ -5,6 +5,7 @@ var R = require('ramda')
 var moment = require('moment')
 var aws = require('aws-sdk')
 var nodemailer = require('nodemailer')
+var Transactions = require('../models/Transactions')
 
 var config = require('../config')['sesaws']
 aws.config.update(config)
@@ -26,11 +27,32 @@ export const sendEmail = async email => {
   if (email.attachments) params.attachments = email.attachments
 
   let err = null
-  let ret = await transporter.sendMail(params).catch(e => {
+  let resp = await transporter.sendMail(params).catch(e => {
     err = e.message
   })
-  console.log('in emailaws sendEmail', ret, err)
-  return [err, ret]
+
+  let tr
+  if (err)
+    tr = new Transactions({
+      mode: 'Email',
+      type: 'Error',
+      recordId: email._id,
+      subject: email.subject,
+      to: email.to,
+      descripion: err
+    })
+  else
+    tr = new Transactions({
+      mode: 'Email',
+      type: 'Success',
+      recordId: email._id,
+      subject: email.subject,
+      to: email.to,
+      descripion: resp
+    })
+
+  await tr.save()
+  return [err, resp]
 }
 
 export const sendEmail2 = async email => {
