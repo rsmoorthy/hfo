@@ -48,7 +48,8 @@ export const sendEmail = async email => {
       recordId: email._id,
       subject: email.subject,
       to: email.to,
-      descripion: resp
+      descripion: resp.toString(),
+      response: resp.toString()
     })
 
   await tr.save()
