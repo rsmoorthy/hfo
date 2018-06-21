@@ -82,7 +82,7 @@ export const getAirportBoards = async airport => {
 }
 
 export const getFlightInfoStatus = async (icaoFlightNumber, arrivalDate = moment()) => {
-  arrivalDate = typeof arrivalDate === 'object' ? arrivalDate : moment(arrivalDate)
+  arrivalDate = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
 
   let err
   var details = await rp
@@ -138,6 +138,5 @@ export const getFlightTrack = async faFlightID => {
 
   var response = []
   let len = track.GetFlightTrackResult.tracks.length
-  console.log(track.GetFlightTrackResult.tracks[len - 1])
   return response
 }
