@@ -102,8 +102,9 @@ router.post('/signup', async function(req, res, next) {
 router.post('/signupverify', async function(req, res, next) {
   var inp = req.body
   var ret
-  ret = await Users.findOne({ _id: inp.id }).exec()
-  if (ret === null) return res.json({ status: 'error', message: 'Invalid id specified' })
+  let err = null
+  ret = await Users.findOne({ _id: inp.id }).exec().catch(e => err = e.message)
+  if (ret === null || err !== null) return res.json({ status: 'error', message: 'Invalid id specified', error: err })
   if (ret.authCode !== inp.otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
 
   await Users.findByIdAndUpdate(inp.id, { authCode: '' })
@@ -116,9 +117,10 @@ router.get('/signupverify/:id/:otp', async function(req, res, next) {
   var id = req.params.id
   var otp = req.params.otp
   var ret
+  let err = null
 
-  ret = await Users.findOne({ _id: id }).exec()
-  if (ret === null) return res.json({ status: 'error', message: 'Invalid id specified' })
+  ret = await Users.findOne({ _id: id }).exec().catch(e => err = e.message)
+  if (ret === null || err !== null) return res.json({ status: 'error', message: 'Invalid id specified', error: err })
   if (ret.authCode !== otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
 
   await Users.findByIdAndUpdate(id, { authCode: '' })

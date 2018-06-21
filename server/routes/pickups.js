@@ -59,16 +59,18 @@ router.get('/:id?', async function(req, res, next) {
       }
       if (
         moment().diff(p2.scheduledDeparture, 'minutes') > 0 &&
-        moment().date() === moment(p2.scheduledDeparture).date() &&
+        moment().date() - moment(p2.scheduledDeparture).date() >= 0 &&
+        moment().date() - moment(p2.scheduledDeparture).date() <= 2 &&
         p2.flightProgress !== '100'
       ) {
-        let [e, ret] = await flightstats.getFlightTrack(p2.flight)
+        let [e, ret] = await flightstats.getFlightTrack(p2.flight, p2.scheduledArrival)
         if (ret && ret.position) {
           p2.position = ret.position
           await Pickups.findByIdAndUpdate(p2._id, { position: p2.position, flightStatsLastUpdated: new Date() })
         }
         let [e2, ret2] = await flightaware.getFlightInfoStatus(
-          p2.carrierICAO ? p2.carrierICAO + p2.flight.substr(2) : p2.flight
+          p2.carrierICAO ? p2.carrierICAO + p2.flight.substr(2) : p2.flight,
+          p2.scheduledArrival
         )
         if (ret2) {
           p2.flightStatus = ret2.status
@@ -278,7 +280,7 @@ const updateFlightSchedule = async inp => {
   return [null, inp, fl]
 }
 
-const getArrivalBay = async pickupDate => {
+const getArrivalBay = pickupDate => {
   return 'A1'
 }
 
