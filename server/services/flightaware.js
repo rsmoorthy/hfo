@@ -27,11 +27,11 @@ const extractFlightData = flights => {
       arrivalDelay: flight.arrival_delay,
       status: flight.status,
       progress: flight.progress_percent,
-      scheduledDeparture: moment.unix(flight.filed_departure_time.epoch),
-      scheduledArrival: moment.unix(flight.filed_arrival_time.epoch),
-      actualDeparture: moment.unix(flight.actual_departure_time.epoch),
-      etaArrival: moment.unix(flight.estimated_arrival_time.epoch),
-      actualArrival: moment.unix(flight.actual_arrival_time.epoch),
+      scheduledDeparture: moment.unix(flight.filed_departure_time.epoch).utc(),
+      scheduledArrival: moment.unix(flight.filed_arrival_time.epoch).utc(),
+      actualDeparture: moment.unix(flight.actual_departure_time.epoch).utc(),
+      etaArrival: moment.unix(flight.estimated_arrival_time.epoch).utc(),
+      actualArrival: moment.unix(flight.actual_arrival_time.epoch).utc(),
       eta_date: flight.estimated_arrival_time.date,
       eta_time: flight.estimated_arrival_time.time
     })

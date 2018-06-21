@@ -5,40 +5,6 @@ var moment = require('moment')
 
 var config = require('../config')['flightstats']
 
-const extractFlightData = flights => {
-  var result = []
-  R.forEach(flight => {
-    result.push({
-      ident: flight.ident,
-      tailNumber: flight.tailnumber,
-      flight: flight.airline_iata + '' + flight.flightnumber,
-      note: flight.origin.airport_name + ' to ' + flight.destination.airport_name + '\n' + flight.status,
-      arrivalTime: flight.status + '\nETA: ' + flight.estimated_arrival_time.time,
-      from: flight.origin.airport_name,
-      fromCode: flight.origin.alternate_ident,
-      fromCity: flight.origin.city,
-      to: flight.destination.airport_name,
-      toCity: flight.destination.city,
-      toCode: flight.destination.alternate_ident,
-      cancelled: flight.cancelled,
-      diverted: flight.diverted,
-      departureDelay: flight.departure_delay,
-      arrivalDelay: flight.arrival_delay,
-      status: flight.status,
-      progress: flight.progress_percent,
-      scheduledDeparture: moment.unix(flight.filed_departure_time.epoch),
-      scheduledArrival: moment.unix(flight.filed_arrival_time.epoch),
-      actualDeparture: moment.unix(flight.actual_departure_time.epoch),
-      etaArrival: moment.unix(flight.estimated_arrival_time.epoch),
-      actualArrival: moment.unix(flight.actual_arrival_time.epoch),
-      eta_date: flight.estimated_arrival_time.date,
-      eta_time: flight.estimated_arrival_time.time
-    })
-  }, flights)
-
-  return result
-}
-
 const getAirportData = (airports, key, airportCode) => {
   let airport = R.filter(R.propEq('fs', airportCode), airports)
   if (airport.length === 1) return airport[0][key]
@@ -106,8 +72,12 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
         timezone: getAirportData(airports, 'timeZoneRegionName', fl.arrivalAirportFsCode),
         utcOffset: getAirportData(airports, 'utcOffsetHours', fl.arrivalAirportFsCode)
       },
-      scheduledDeparture: moment(fl.departureTime),
-      scheduledArrival: moment(fl.arrivalTime),
+      scheduledDeparture: moment(fl.departureTime)
+        .utcOffset(getAirportData(airports, 'utcOffsetHours', fl.departureAirportFsCode))
+        .toString(),
+      scheduledArrival: moment(fl.arrivalTime)
+        .utcOffset(getAirportData(airports, 'utcOffsetHours', fl.arrivalAirportFsCode))
+        .toString(),
       message:
         'Flight ' +
         fl.carrierFsCode +
@@ -154,15 +124,11 @@ export const getFlightStatus = async (flight, arrivalDate = moment()) => {
     flight: fl.carrierFsCode + fl.flightNumber,
     fromCode: fl.departureAirportFsCode,
     toCode: fl.arrivalAirportFsCode,
-    scheduledDeparture: moment(fl.operationalTimes.publishedDeparture.dateUtc),
-    scheduledArrival: moment(fl.operationalTimes.publishedArrival.dateUtc),
-    actualDeparture: fl.operationalTimes.actualGateDeparture
-      ? moment(fl.operationalTimes.actualGateDeparture.dateUtc)
-      : '',
-    actualArrival: fl.operationalTimes.actualGateArrival ? moment(fl.operationalTimes.actualGateArrival.dateUtc) : '',
-    etaArrival: fl.operationalTimes.estimatedGateArrival
-      ? moment(fl.operationalTimes.estimatedGateArrival.dateUtc)
-      : '',
+    scheduledDeparture: fl.operationalTimes.publishedDeparture.dateUtc,
+    scheduledArrival: fl.operationalTimes.publishedArrival.dateUtc,
+    actualDeparture: fl.operationalTimes.actualGateDeparture ? fl.operationalTimes.actualGateDeparture.dateUtc : '',
+    actualArrival: fl.operationalTimes.actualGateArrival ? fl.operationalTimes.actualGateArrival.dateUtc : '',
+    etaArrival: fl.operationalTimes.estimatedGateArrival ? fl.operationalTimes.estimatedGateArrival.dateUtc : '',
     departureDelay: fl.delays.departureGateDelayMinutes * 60,
     arrivalDelay: fl.delays.arrivalGateDelayMinutes * 60
   }
