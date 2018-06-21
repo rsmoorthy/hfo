@@ -151,7 +151,7 @@ export const FlightScheduleInfo = ({ item, style }) => (
 
 const PickupMetaInfo = ({ item, style }) => (
   <View style={style}>
-    <Text style={{ fontSize: 10, color: 'gray' }}> HFO Status: </Text>
+    <Text style={{ fontSize: 10, color: 'gray' }}> Pickup Status: </Text>
     <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>{item.status}</Text>
     <Text style={{ fontSize: 10, color: 'gray' }}> Flight Status: </Text>
     <Text style={{ fontSize: 13, borderWidth: 0, borderColor: 'pink', padding: 2 }}>
@@ -563,8 +563,8 @@ class _PickupView extends Component {
                           width: '90%'
                         }}
                         onRegionChangeComplete={() => {
-                          console.log('on region change list', typeof this.markers)
                           /*
+                          console.log('on region change list', typeof this.markers)
                           if (!this.calloutShown) {
                             this.markers.forEach(m => m.showCallout())
                             this.calloutShown = true
