@@ -3,8 +3,8 @@ import axios from 'axios'
 import qs from 'qs'
 import config from '../config'
 
-const hostip = config.SERVER_IP ? config.SERVER_IP : '192.168.8.100'
-const host = 'http://' + hostip + ':3000'
+const hostip = config.SERVER_IP ? config.SERVER_IP : 'http://192.168.8.100:3000'
+const host = hostip
 console.log('host', host, process.env.SERVER_IP, process.env, config.SERVER_IP)
 
 export const getCurrentFlights = () => {
