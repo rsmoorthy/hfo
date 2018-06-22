@@ -98,7 +98,8 @@ class _UserList extends Component {
                   }}>
                   {/** User photo takes 1/3rd of view horizontally **/}
                   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <TouchableOpacity onPress={() => this.props.navigation.push('GetPhotoModal', { id: item._id })}>
+                    <TouchableOpacity
+                      onPress={() => this.props.navigation.push('GetPhotoModal', { id: item._id, image: item.photo })}>
                       <Image
                         source={item.photo && item.photo.length ? { uri: item.photo } : require('../assets/user1.jpg')}
                         style={{ width: 52, height: 52, borderRadius: 37.5 }}

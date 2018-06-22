@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { View, ScrollView, Image, StyleSheet, Platform, ActivityIndicator, StatusBar, Dimensions } from 'react-native'
 
 import Login from './Login'
-import PassengerHome from './PassengerHome'
+import PassengerHome, { PastPassengerList } from './PassengerHome'
 import { UserList } from './UserList'
 import UserForm from './UserForm'
 import FlightArrivals from './FlightArrivals'
@@ -11,10 +11,9 @@ import AddMediaTab from './AppTabNavigator/AddMediaTab'
 import LikesTab from './AppTabNavigator/LikesTab'
 import Profile from './Profile'
 import DisplayList from './DisplayList'
-import PassengerArrivalsTab from './AppTabNavigator/PassengerArrivalsTab'
 import Signup from './Signup'
 import PickupForm, { AssignReceiverModal, RequestPickup } from './PickupForm'
-import PickupList, { PickupView } from './PickupList'
+import PickupList, { PickupView, PastPickupList } from './PickupList'
 import AdminScreen, { AdminTemplatesList, AdminTemplatesForm } from './AdminScreen'
 import ModalScreen, { FeedbackModal } from './ModalScreen'
 import GetPhotoModal from './GetPhotoModal'
@@ -121,16 +120,28 @@ class MainScreen extends Component {
 
   _handleNotification = notification => {
     notification.data.time = new Date()
-    console.log('notification received', notification)
-    this.props.doReceiveNotification({
-      ...notification.data,
-      notificationId: notification.notificationId,
-      remote: notification.remote
-    })
-    if (notification.data.id) {
-      this.props.getPickups(notification.data.id, item => {
-        this.props.navigation.push('PickupView', { pickup: item })
+    console.log('notification received', notification, this.props.meta.lastNotificationId, notification.notificationId)
+    if (this.props.meta.lastNotificationId === notification.notificationId) return
+    if (notification.data.id && notification.data.type === 'pickup') {
+      console.log('pickup notification received', notification.data.id)
+      this.props.getPickups('id', notification.data.id, item => {
+        // this.props.navigation.navigate('PickupView', { pickup: item })
+        NavigatorService.navigate(this.props.login.role === 'Passenger' ? 'Home' : 'PickupView', { pickup: item })
       })
+      this.props.doReceiveNotification(
+        {
+          ...notification.data,
+          notificationId: notification.notificationId,
+          remote: notification.remote,
+          origin: notification.origin
+        },
+        false
+      )
+    }
+    if (notification.data.type === 'logout') {
+      this.props.doLogout()
+      this.props.doReceiveNotification({ notificationId: notification.notificationId }, true)
+      Notifications.dismissNotificationAsync(notification.notificationId)
     }
   }
 
@@ -151,6 +162,7 @@ class MainScreen extends Component {
 
   render() {
     const pickupStack = createStackNavigator({ PickupList, PickupView, PickupForm }, { initialRouteName: 'PickupList' })
+    const pastPickupStack = createStackNavigator({ PastPickupList, PickupView }, { initialRouteName: 'PastPickupList' })
     const adminUsersStack = createStackNavigator({ UserList, UserForm }, { initialRouteName: 'UserList' })
     const adminScreensStack = createStackNavigator(
       { AdminScreen, AdminTemplatesList, AdminTemplatesForm, UserList, UserForm },
@@ -174,8 +186,15 @@ class MainScreen extends Component {
               drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
             }
           },
+          PastPickups: {
+            screen: pastPickupStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerLabel: 'Past Pickups'
+            }
+          },
           FlightArrivals: FlightArrivals,
-          // PassengerArrivalsTab: PassengerArrivalsTab,
           Profile: Profile
         },
         navigationOptions
@@ -186,11 +205,20 @@ class MainScreen extends Component {
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
+            }
+          },
+          'New Pickup': PickupForm,
+          PastPickups: {
+            screen: pastPickupStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerLabel: 'Past Pickups'
             }
           },
           FlightArrivals: FlightArrivals,
-          PassengerArrivalsTab: PassengerArrivalsTab,
           Profile: Profile
         },
         navigationOptions
@@ -200,6 +228,7 @@ class MainScreen extends Component {
         {
           Home: PassengerHome,
           RequestPickup: RequestPickup,
+          PastPickups: PastPickupList,
           Profile: Profile
         },
         navigationOptions
@@ -222,6 +251,14 @@ class MainScreen extends Component {
     } else if (this.props.login.role === 'Admin') {
       userStack = createDrawerNavigator(
         {
+          Users: {
+            screen: adminUsersStack,
+            navigationOptions: {
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />
+            }
+          },
+          'New Pickup': PickupForm,
           Pickups: {
             screen: pickupStack,
             navigationOptions: {
@@ -229,12 +266,12 @@ class MainScreen extends Component {
               drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />
             }
           },
-          'New Pickup': PickupForm,
-          Users: {
-            screen: adminUsersStack,
+          PastPickups: {
+            screen: pastPickupStack,
             navigationOptions: {
-              tabBarIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
-              drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />
+              tabBarIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+              drawerLabel: 'Past Pickups'
             }
           },
           Profile: Profile,
@@ -286,7 +323,7 @@ class MainScreen extends Component {
       <Root>
         <RootNavigator
           ref={nav => {
-            NavigatorService.setContainer(nav)
+            NavigatorService.setContainer(nav, 'within Root')
           }}
         />
       </Root>
@@ -381,7 +418,7 @@ const MainScreen3 = createDrawerNavigator({
 })
 */
 
-export default connect(utils.mapStateToProps('hfo', ['login']), utils.mapDispatchToProps)(MainScreen)
+export default connect(utils.mapStateToProps('hfo', ['login', 'meta']), utils.mapDispatchToProps)(MainScreen)
 
 /*
 const AppTabNavigator = createTabNavigator(

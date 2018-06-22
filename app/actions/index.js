@@ -122,9 +122,20 @@ export const doGoogleSignin = value => {
   }
 }
 
-export const doLogout = () => ({
-  type: 'LOGOUT'
-})
+export const doLogout = () => {
+  return (dispatch, getState) => {
+    let state = getState()
+    var id = state.hfo.login.id
+    var expoToken = state.hfo.login.expoToken
+    dispatch({ type: 'LOGOUT' })
+    axios
+      .post(host + '/auth/logout', { id, expoToken })
+      .then(response => {})
+      .catch(error => {
+        console.log(error.message)
+      })
+  }
+}
 
 export const resetSignup = () => ({
   type: 'SIGNUP_RESET'
@@ -180,20 +191,20 @@ export const doUpdateLoginData = value => {
     })
       .then(response => {
         if (response.data.status === 'ok') {
-          dispatch({ type: 'UPDATE_LOGIN_DATA', data: value })
+          dispatch({ type: 'UPDATE_LOGIN_DATA', data: response.data.user })
         }
       })
-      .catch()
+      .catch(console.log)
   }
 }
 
-export const getPickups = (id, callback) => {
+export const getPickups = (scope, id, callback) => {
   return (dispatch, getState) => {
     dispatch({ type: 'PICKUP_LIST_IN_PROGRESS' })
     const state = getState()
     axios({
       method: 'GET',
-      url: host + '/pickups' + (id === undefined ? '' : '/' + id),
+      url: host + '/pickups/' + (scope || 'current') + (id === undefined ? '' : '/' + id),
       headers: {
         Authorization: 'token ' + state.hfo.login.token
       }
@@ -213,13 +224,11 @@ export const getPickups = (id, callback) => {
   }
 }
 
-export const doAddPickup = value => {
+export const doAddPickup = (value, callback) => {
   return (dispatch, getState) => {
     const state = getState()
     dispatch({ type: 'PICKUP_RESET' })
     const options = {}
-    const val = { ...value }
-    delete val.callback
     // .post(host + '/pickups', { ...value, agentIdId: state.hfo.login.id })
     axios({
       method: 'POST',
@@ -227,21 +236,21 @@ export const doAddPickup = value => {
       headers: {
         Authorization: 'token ' + state.hfo.login.token
       },
-      data: { ...val, agentIdId: state.hfo.login.id }
+      data: { ...value, agentId: state.hfo.login.id }
     })
       .then(response => {
         if (response.data.status === 'ok') {
-          dispatch({ type: 'PICKUP_SUCCESS', user: value })
+          dispatch({ type: 'PICKUP_SUCCESS', pickup: value })
           setTimeout(() => dispatch({ type: 'PICKUP_RESET' }), 8000)
-          getPickups()(dispatch, getState)
-          if (value.callback) value.callback(null, response.data.message)
+          getPickups('id', response.data.id)(dispatch, getState)
+          if (callback) callback(null, response.data.message)
         } else {
-          if (value.callback) value.callback(response.data.message)
+          if (callback) callback(response.data.message)
           dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
         }
       })
       .catch(error => {
-        if (value.callback) value.callback(error.message)
+        if (callback) callback(error.message)
         dispatch({ type: 'PICKUP_FAILURE', message: error.message })
       })
   }
@@ -265,10 +274,10 @@ export const doUpdatePickup = (value, callback) => {
         if (response.data.status === 'ok') {
           dispatch({ type: 'PICKUP_SUCCESS', user: value })
           setTimeout(() => dispatch({ type: 'PICKUP_RESET' }), 8000)
-          getPickups()(dispatch, getState)
+          getPickups('id', value._id)(dispatch, getState)
           if (callback) callback(null, response.data.message)
         } else {
-          if (callback) value.callback(response.data.message)
+          if (callback) callback(response.data.message)
           dispatch({ type: 'PICKUP_FAILURE', message: response.data.message })
         }
       })
@@ -279,13 +288,12 @@ export const doUpdatePickup = (value, callback) => {
   }
 }
 
-export const doCompletePickup = value => {
+export const doCompletePickup = (value, callback) => {
   return (dispatch, getState) => {
     console.log('complete pickup', value)
     const state = getState()
     dispatch({ type: 'PICKUP_COMPLETE_RESET' })
     const options = {}
-    // .post(host + '/pickups', { ...value, agentIdId: state.hfo.login.id })
     axios({
       method: 'PUT',
       url: host + '/pickups/complete/' + value._id,
@@ -298,18 +306,24 @@ export const doCompletePickup = value => {
         if (response.data.status === 'ok') {
           dispatch({ type: 'PICKUP_COMPLETE_SUCCESS', user: value })
           setTimeout(() => dispatch({ type: 'PICKUP_COMPLETE_RESET' }), 8000)
-          getPickups()(dispatch, getState)
-        } else dispatch({ type: 'PICKUP_COMPLETE_FAILURE', message: response.data.message })
+          getPickups('id', value._id)(dispatch, getState)
+          if (callback) callback(null, response.data.message)
+        } else {
+          if (callback) callback(response.data.message)
+          dispatch({ type: 'PICKUP_COMPLETE_FAILURE', message: response.data.message })
+        }
       })
       .catch(error => {
+        if (callback) callback(error.message)
         dispatch({ type: 'PICKUP_COMPLETE_FAILURE', message: error.message })
       })
   }
 }
 
-export const doReceiveNotification = notification => ({
+export const doReceiveNotification = (notification, onlyId) => ({
   type: 'NOTIFICATION',
-  notification: notification
+  notification: notification,
+  onlyId: onlyId
 })
 
 export const setExpoToken = expoToken => ({

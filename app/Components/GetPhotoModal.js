@@ -58,13 +58,13 @@ class GetPhotoModal extends Component {
   imageUpdate = (id, result) => {
     if (result.cancelled) return
     this.setState({ image: result.uri })
-    if (id) {
-      this.props.doUpdateUser({ _id: id, id: id, photo: 'data:image/jpeg;base64,' + result.base64 })
-    } else
+    console.log('imageUpdate', id, this.props.login.id, result.uri)
+    if (id === this.props.login.id) {
       this.props.doUpdateLoginData({
         id: this.props.login.id,
         photo: 'data:image/jpeg;base64,' + result.base64
       })
+    } else this.props.doUpdateUser({ _id: id, id: id, photo: 'data:image/jpeg;base64,' + result.base64 })
   }
 
   pickImage = async id => {
@@ -79,12 +79,13 @@ class GetPhotoModal extends Component {
   }
 
   openCamera = async id => {
+    console.log('open camera', id)
     let result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 0.5,
       base64: true,
       aspect: [1, 1]
-    })
+    }).catch(err => console.log('opening camera failed', err.message))
     this.imageUpdate(id, result)
   }
 
@@ -102,9 +103,9 @@ class GetPhotoModal extends Component {
           }}>
           <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
           {this.state.id && (
-            <View style={{ flex: 1, padding: 20 }}>
+            <View style={{ flex: 1, paddingLeft: 20, paddingRight: 20 }}>
               <Button
-                style={{ alignSelf: 'stretch', marginBottom: 20 }}
+                style={{ alignSelf: 'stretch', marginBottom: 10 }}
                 title="From Gallery"
                 onPress={() => this.pickImage(this.state.id)}>
                 <Text>From Gallery</Text>
@@ -117,7 +118,14 @@ class GetPhotoModal extends Component {
           {this.state.image && (
             <Image
               source={{ uri: this.state.image }}
-              style={{ alignSelf: 'stretch', flex: 3, width: undefined, height: undefined }}
+              style={{
+                alignSelf: 'stretch',
+                flex: 2,
+                marginLeft: 5,
+                marginRight: 5,
+                width: undefined,
+                height: undefined
+              }}
             />
           )}
         </View>

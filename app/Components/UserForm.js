@@ -29,9 +29,10 @@ const Form = t.form.Form
 const FormUser = t.struct({
   _id: t.String,
   name: t.String,
-  email: t.maybe(t.String),
-  mobile: t.String,
+  email: t.maybe(utils.tform.Email),
+  mobile: t.maybe(t.String),
   password: t.maybe(t.String),
+  disabled: t.maybe(t.enums({ No: 'No', Yes: 'Yes' })),
   role: t.enums({ Receiver: 'Receiver', Passenger: 'Passenger', Admin: 'Admin', Agent: 'Agent' })
 })
 
@@ -85,9 +86,8 @@ class UserForm extends Component {
       <Container>
         <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <Left>
-            {/* <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} /> */}
             <Button transparent>
-              <Icon name="menu" onPress={this.props.navigation.openDrawer} />
+              <Icon name="md-arrow-back" onPress={() => this.props.navigation.goBack()} />
             </Button>
           </Left>
           <Body>

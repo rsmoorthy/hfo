@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
-import { View, StatusBar, StyleSheet, Alert } from 'react-native'
+import { View, StatusBar, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import moment from 'moment'
 import t from 'tcomb-form-native' // 0.6.9
 import StarRating from 'react-native-star-rating'
@@ -68,6 +68,7 @@ class _FeedbackModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      inProgress: false,
       type: this.getType(),
       value: {
         _id: '',
@@ -116,11 +117,12 @@ class _FeedbackModal extends Component {
 
   handleSubmit = () => {
     const value = this._form.getValue()
-    console.log('value', value)
     if (value) {
       this.state.value = value
       if (value._id) {
-        this.props.doUpdatePickup(value, (err, message) => {
+        this.setState({ inProgress: true })
+        this.props.doCompletePickup(value, (err, message) => {
+          this.setState({ inProgress: false })
           if (err) Alert.alert('Failed to submit Feedback', err)
           else {
             Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 1500 })
@@ -133,7 +135,6 @@ class _FeedbackModal extends Component {
 
   componentWillMount() {
     const pickup = this.props.navigation.getParam('pickup', null)
-    console.log(pickup, pickup.status, pickup.rating)
     if (pickup) {
       this.setState({
         value: {
@@ -160,6 +161,7 @@ class _FeedbackModal extends Component {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '80%', borderRadius: 8, borderWidth: 1 }}>
           <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
+          {this.state.inProgress === true && <ActivityIndicator size="large" color="#000" />}
           <View style={{ padding: 20, width: '100%', alignSelf: 'stretch' }}>
             <StarRating
               disabled={false}

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, Image, Dimensions, FlatList, TouchableOpacity, TouchableHighlight } from 'react-native'
+import { View, StyleSheet, Image, Dimensions, FlatList, TouchableOpacity, TouchableHighlight } from 'react-native'
 import moment from 'moment'
 
 import {
@@ -12,6 +12,7 @@ import {
   Right,
   Segment,
   Button,
+  Text,
   List,
   ListItem,
   Thumbnail
@@ -60,26 +61,24 @@ class Profile extends Component {
           <List>
             {this.props.notifications.length === 0 && (
               <ListItem>
-                <Left>
-                  <Icon name="ios-notifications" />
-                </Left>
                 <Body>
                   <Text style={{ fontStyle: 'italic', color: 'gray' }}>No Notifications</Text>
                 </Body>
               </ListItem>
             )}
             {this.props.notifications.map((notification, index) => (
-              <ListItem icon key={index}>
-                <Left>
-                  <Icon name="ios-notifications" />
-                </Left>
+              <ListItem
+                key={index}
+                style={{ marginBottom: 5, paddingTop: 5, paddingBottom: 5, backgroundColor: 'white' }}>
                 <Body>
                   <Text style={{ fontSize: 20, color: 'darkblue' }}>{notification.title}</Text>
-                  <Text note>{notification.body}</Text>
+                  <Text note style={{ fontSize: 13, color: '#111111' }}>
+                    {notification.body}
+                  </Text>
                 </Body>
                 <Right>
-                  <Text>{moment(notification.arrivalTime).format('YYYY-MM-DD hh:mm')}</Text>
-                  <Icon name="arrow-forward" />
+                  <Text style={{ fontSize: 9, color: 'gray' }}> {moment(notification.time).format('YYYY-MM-DD')} </Text>
+                  <Text style={{ fontSize: 9, color: 'gray' }}> {moment(notification.time).format('HH:mm')} </Text>
                 </Right>
               </ListItem>
             ))}
@@ -111,7 +110,7 @@ class Profile extends Component {
     const opacity = this.props.meta.screenOpacity
     const photo =
       this.props.login.photo && this.props.login.photo.length
-        ? { uri: this.props.login.photo }
+        ? { uri: this.props.login.photo, cache: 'reload' }
         : require('../assets/user1.jpg')
     return (
       <Container style={{ flex: 1, backgroundColor: '#EAE8EF', opacity: opacity }}>
@@ -137,7 +136,13 @@ class Profile extends Component {
             <View style={{ flexDirection: 'row' }}>
               {/** User photo takes 1/3rd of view horizontally **/}
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
-                <TouchableOpacity onPress={() => this.props.navigation.push('GetPhotoModal')}>
+                <TouchableOpacity
+                  onPress={() =>
+                    this.props.navigation.push('GetPhotoModal', {
+                      id: this.props.login.id,
+                      image: this.props.login.photo
+                    })
+                  }>
                   <Image source={photo} style={{ width: 75, height: 75, borderRadius: 37.5 }} />
                 </TouchableOpacity>
               </View>

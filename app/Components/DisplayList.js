@@ -34,7 +34,7 @@ class DisplayList extends Component {
 
   componentWillMount() {
     this.props.dispatch({ type: 'PICKUP_RESET' })
-    this.props.getPickups()
+    this.props.getPickups('current')
   }
 
   render() {
@@ -46,7 +46,7 @@ class DisplayList extends Component {
             <Title>Welcome</Title>
           </Body>
           <Right>
-            <Button transparent onPress={() => this.props.getPickups()}>
+            <Button transparent onPress={() => this.props.getPickups('current')}>
               <Icon name="md-refresh" />
             </Button>
           </Right>

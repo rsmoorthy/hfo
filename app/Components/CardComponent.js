@@ -7,7 +7,7 @@ import { Card, CardItem, Thumbnail, Body, Left, Right, Button, Icon, Text, List,
 class CardComponent extends Component {
   render() {
     const images = {
-      Bangalore: require('../assets/blr_airport2.jpg'),
+      Bengaluru: require('../assets/blr_airport2.jpg'),
       Hyderabad: require('../assets/hyd_airport.jpg'),
       NewDelhi: require('../assets/delhi_airport1.jpg'),
       Others: require('../assets/blr_airport1.jpg')

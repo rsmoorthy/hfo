@@ -50,11 +50,7 @@ export default class App extends React.Component {
     return (
       <Provider store={store}>
         <PersistGate loading={<AppLoading />} persistor={persistor}>
-          <MainScreen
-            ref={nav => {
-              NavigatorService.setContainer(nav)
-            }}
-          />
+          <MainScreen />
         </PersistGate>
       </Provider>
     )

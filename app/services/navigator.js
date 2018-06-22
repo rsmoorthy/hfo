@@ -2,7 +2,7 @@ import { StackActions, NavigationActions } from 'react-navigation'
 
 let _navigator
 
-function setContainer(container) {
+function setContainer(container, where) {
   _navigator = container
 }
 

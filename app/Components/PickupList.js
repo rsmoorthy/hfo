@@ -56,21 +56,23 @@ const MobileInfo = ({ item }) => (
   </View>
 )
 
-export const ProfileInfo = ({ style, item, who, navigation }) => {
+export const ProfileInfo = ({ style, item, who, navigation, login }) => {
   return (
     <View style={style}>
       <Text style={{ fontSize: 10, color: 'gray' }}>{who}</Text>
       {who === 'Receiver' && (item.receiverId === null || item.receiverId === undefined) ? (
         <View>
           <Text style={{ fontSize: 16, color: 'brown' }}>Not assigned</Text>
-          <Button
-            transparent
-            small
-            title="Assign Receiver"
-            onPress={() => navigation.push('AssignReceiverModal', { pickup: item.item })}
-            style={{ borderColor: 'brown', borderWidth: 1, padding: 2 }}>
-            <Text>Assign Receiver</Text>
-          </Button>
+          {login.role !== 'Passenger' && (
+            <Button
+              transparent
+              small
+              title="Assign Receiver"
+              onPress={() => navigation.push('AssignReceiverModal', { pickup: item.item })}
+              style={{ borderColor: 'brown', borderWidth: 1, padding: 2 }}>
+              <Text>Assign Receiver</Text>
+            </Button>
+          )}
         </View>
       ) : (
         <View>
@@ -174,33 +176,38 @@ export const FlightStatus = ({ item, style }) => (
   <View style={style}>
     <View style={{ flexDirection: 'row' }}>
       <View style={{ flex: 1, paddingRight: 20 }}>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Flight Status: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}>{item.flightStatus ? item.flightStatus : 'Not Departed'}</Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Actual Departure: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Flight Status: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}>{item.flightStatus ? item.flightStatus : 'Not Departed'}</Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Exp Departure: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}>
+          {item.scheduledDeparture ? moment(item.scheduledDeparture).format('HH:mm') : ' '}{' '}
+        </Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Dep Delay: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}> {item.departureDelay ? item.departeDelay : ' '} </Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Actual Departure: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}>
           {' '}
           {item.actualDeparture ? moment(item.actualDeparture).format('HH:mm') : ' '}{' '}
         </Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Exp Departure: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}> {'  '} </Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Dep Delay: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}> {item.departureDelay ? item.departeDelay : ' '} </Text>
       </View>
       <View style={{ flex: 1, paddingLeft: 20 }}>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Flight Progress: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}> {item.flightProgress ? item.flightProgress + ' %' : 'n/a'} </Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Actual Arrival: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}>
-          {' '}
-          {item.actualArrival ? moment(item.actualArrival).format('HH:mm') : ' '}{' '}
-        </Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Exp Arrival: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Flight Progress: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}> {item.flightProgress ? item.flightProgress + ' %' : 'n/a'} </Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Exp Arrival: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}>
           {' '}
           {item.etaArrival ? moment(item.etaArrival).format('HH:mm') : ' '}{' '}
         </Text>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Arr Delay: </Text>
-        <Text style={{ fontSize: 13, padding: 2 }}> {item.arrivalDelay ? item.arrivallay : ' '} </Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Arr Delay: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}> {item.arrivalDelay ? item.arrivallay : ' '} </Text>
+        <Text style={{ fontSize: 12, color: 'gray' }}> Actual Arrival: </Text>
+        <Text style={{ fontSize: 15, padding: 2 }}>
+          {item.actualArrival
+            ? moment(item.actualArrival).year() === 1970
+              ? ' '
+              : moment(item.actualArrival).format('HH:mm')
+            : ' '}{' '}
+        </Text>
       </View>
     </View>
   </View>
@@ -211,28 +218,33 @@ export const ArrivalBay = ({ item, style }) => (
     <View style={{ flexDirection: 'row' }}>
       <View
         style={{
-          flex: 1,
+          flex: 0.6,
           alignItems: 'center',
           justifyContent: 'center',
           paddingRight: 20
         }}>
-        <Text style={{ fontSize: 10, color: 'gray' }}> Display Screen No: </Text>
+        <Text style={{ fontSize: 12 }}> Display Screen No: </Text>
       </View>
-      <View style={{ flex: 1, paddingLeft: 20 }}>
+      <View style={{ flex: 1, paddingLeft: 10 }}>
         <Text
           style={{
             fontSize: 16,
-            alignItems: 'center',
+            alignSelf: 'center',
             justifyContent: 'center',
-            backgroundColor: '#009adf',
+            borderWidth: 2,
+            borderColor: '#009adf',
             width: 40,
             height: 40,
-            color: 'white',
+            fontWeight: 'bold',
+            color: '#009adf',
             borderRadius: 22,
-            padding: 2
+            paddingLeft: 8,
+            paddingTop: 10,
+            paddingBottom: 2,
+            paddingRight: 2
           }}>
           {' '}
-          {item.arrivalBay ? item.arrivalBay : ' '}{' '}
+          {item.arrivalBay ? item.arrivalBay : 'n/a'}{' '}
         </Text>
       </View>
     </View>
@@ -305,20 +317,60 @@ export const CompleteTrip = props => (
           </Button>
         </View>
       )}
+    {props.item.status === 'Completed' && (
+      <View style={{ flexDirection: 'row' }}>
+        <View
+          style={{
+            flex: 0.6,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingRight: 20
+          }}>
+          <Text style={{ fontSize: 12 }}> Completed Pickup on: </Text>
+        </View>
+        <View style={{ flex: 1, paddingLeft: 10 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              alignSelf: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderColor: '#009adf',
+              width: 170,
+              height: 30,
+              color: '#009adf',
+              borderRadius: 3,
+              paddingLeft: 8,
+              paddingTop: 5,
+              paddingBottom: 2,
+              paddingRight: 2
+            }}>
+            {' '}
+            {props.item.completedDate ? moment(props.item.completedDate).format('Do MMM YYYY HH:mm') : 'unknown'}{' '}
+          </Text>
+        </View>
+      </View>
+    )}
   </View>
 )
 
 class PickupList extends Component {
+  state = {
+    scope: 'current',
+    title: 'Pickups List',
+    backgroundColor: '#4050b5'
+  }
+
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
     drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
-    drawerName: 'Pickups',
+    drawerLabel: 'Pickups',
     header: null
   }
 
   componentWillMount() {
     this.props.dispatch({ type: 'PICKUP_RESET' })
-    this.props.getPickups()
+    this.props.getPickups(this.state.scope)
   }
 
   isRefreshing() {
@@ -329,14 +381,20 @@ class PickupList extends Component {
   render() {
     return (
       <Container>
-        <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
+        <Header
+          style={{
+            backgroundColor: this.state.backgroundColor,
+            paddingLeft: 10,
+            paddingTop: getStatusBarHeight(),
+            height: 54 + getStatusBarHeight()
+          }}>
           <Left>
             <Button transparent>
               <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
           </Left>
           <Body>
-            <Title>Pickup List</Title>
+            <Title>{this.state.title}</Title>
           </Body>
           <Right>
             {(this.props.login.role === 'Agent' || this.props.login.role === 'Admin') && (
@@ -344,7 +402,7 @@ class PickupList extends Component {
                 <Icon name="md-add-circle" />
               </Button>
             )}
-            <Button transparent onPress={() => this.props.getPickups()}>
+            <Button transparent onPress={() => this.props.getPickups(this.state.scope)}>
               <Icon name="md-refresh" />
             </Button>
           </Right>
@@ -353,7 +411,7 @@ class PickupList extends Component {
           <FlatList
             data={this.props.pickups}
             refreshing={this.isRefreshing()}
-            onRefresh={() => this.props.getPickups()}
+            onRefresh={() => this.props.getPickups(this.state.scope)}
             keyExtractor={(item, index) => item._id}
             ListEmptyComponent={() => (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -381,6 +439,7 @@ class PickupList extends Component {
                           item={{ ...item, receiverId: item.receiveId, item: item }}
                           navigation={this.props.navigation}
                           who="Passenger"
+                          login={this.props.login}
                         />
                       )}
                       {this.props.login.role !== 'Receiver' && (
@@ -389,6 +448,7 @@ class PickupList extends Component {
                           item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
                           navigation={this.props.navigation}
                           who="Receiver"
+                          login={this.props.login}
                         />
                       )}
                     </View>
@@ -424,9 +484,30 @@ class PickupList extends Component {
     )
   }
 }
+
 export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']), utils.mapDispatchToProps)(
   PickupList
 )
+
+class _PastPickupList extends PickupList {
+  state = {
+    scope: 'past',
+    title: 'Past Pickups',
+    backgroundColor: 'green'
+  }
+
+  static navigationOptions = {
+    tabBarIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+    drawerLabel: 'Past Pickups',
+    header: null
+  }
+}
+
+export const PastPickupList = connect(
+  utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']),
+  utils.mapDispatchToProps
+)(_PastPickupList)
 
 class _PickupView extends Component {
   constructor(props) {
@@ -472,7 +553,7 @@ class _PickupView extends Component {
               transparent
               onPress={() =>
                 pickupId &&
-                this.props.getPickups(pickupId, pickup => {
+                this.props.getPickups('id', pickupId, pickup => {
                   this.setState({ pickups: [pickup] })
                 })
               }>
@@ -485,7 +566,7 @@ class _PickupView extends Component {
             data={this.state.pickups}
             refreshing={this.isRefreshing()}
             onRefresh={() =>
-              this.props.getPickups(pickupId, pickup => {
+              this.props.getPickups('id', pickupId, pickup => {
                 this.setState({ pickups: [pickup] })
               })
             }
@@ -514,6 +595,7 @@ class _PickupView extends Component {
                         item={{ ...item, receiverId: item.receiveId, item: item }}
                         who="Passenger"
                         navigation={this.props.navigation}
+                        login={this.props.login}
                       />
                     </CardItem>
                     <CardItem bordered>
@@ -522,6 +604,7 @@ class _PickupView extends Component {
                         item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
                         who="Receiver"
                         navigation={this.props.navigation}
+                        login={this.props.login}
                       />
                     </CardItem>
                     <CardItem bordered>

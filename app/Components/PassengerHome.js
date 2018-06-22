@@ -65,6 +65,7 @@ class ItemView extends Component {
                 item={{ ...item.receiver, receiverId: item.receiverId, item: item }}
                 who="Receiver"
                 navigation={this.props.navigation}
+                login={this.props.login}
               />
             </CardItem>
             <CardItem bordered>
@@ -141,16 +142,21 @@ class ItemView extends Component {
 }
 
 class PassengerHome extends Component {
+  state = {
+    scope: 'current',
+    title: 'HFO - My Itinerary',
+    backgroundColor: '#4050b5'
+  }
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />,
-    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
-    drawerName: 'HFO - My Itinerary',
+    drawerIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />,
+    drawerLabel: 'Home',
     header: null
   }
 
   componentWillMount() {
     this.props.dispatch({ type: 'PICKUP_RESET' })
-    this.props.getPickups()
+    this.props.getPickups(this.state.scope)
   }
 
   isRefreshing() {
@@ -161,17 +167,23 @@ class PassengerHome extends Component {
   render() {
     return (
       <Container style={styles.container}>
-        <Header style={{ paddingLeft: 10, paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
+        <Header
+          style={{
+            backgroundColor: this.state.backgroundColor,
+            paddingLeft: 10,
+            paddingTop: getStatusBarHeight(),
+            height: 54 + getStatusBarHeight()
+          }}>
           <Left>
             <Button transparent>
               <Icon name="menu" onPress={this.props.navigation.openDrawer} />
             </Button>
           </Left>
           <Body>
-            <Text style={{ fontSize: 20, color: 'white' }}>HFO - My Itinerary</Text>
+            <Text style={{ fontSize: 20, color: 'white' }}>{this.state.title}</Text>
           </Body>
           <Right>
-            <Button transparent onPress={() => this.props.getPickups()}>
+            <Button transparent onPress={() => this.props.getPickups(this.state.scope)}>
               <Icon name="md-refresh" />
             </Button>
           </Right>
@@ -180,7 +192,7 @@ class PassengerHome extends Component {
           <FlatList
             data={this.props.pickups}
             refreshing={this.isRefreshing()}
-            onRefresh={() => this.props.getPickups()}
+            onRefresh={() => this.props.getPickups(this.state.scope)}
             keyExtractor={(item, index) => item._id}
             ListEmptyComponent={() => (
               <View style={{ flex: 1, width: '100%', alignItems: 'stretch', justifyContent: 'center' }}>
@@ -196,7 +208,7 @@ class PassengerHome extends Component {
                   <CardItem bordered>
                     <Body>
                       <Text>
-                        You can request for a pickup at Bangalore airport. You will be notified when a receiver is
+                        You can request for a pickup at Bengaluru airport. You will be notified when a receiver is
                         assigned to you
                       </Text>
                     </Body>
@@ -230,6 +242,26 @@ class PassengerHome extends Component {
 export default connect(utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']), utils.mapDispatchToProps)(
   PassengerHome
 )
+
+class _PastPassengerList extends Component {
+  state = {
+    scope: 'past',
+    title: 'Past Pickups',
+    backgroundColor: 'green'
+  }
+
+  static navigationOptions = {
+    tabBarIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="ios-car-outline" style={{ color: tintColor }} />,
+    drawerLabel: 'Past Pickups',
+    header: null
+  }
+}
+
+export const PastPassengerList = connect(
+  utils.mapStateToProps('hfo', ['login', 'users', 'meta', 'pickups']),
+  utils.mapDispatchToProps
+)(_PastPassengerList)
 
 const styles = StyleSheet.create({
   container: {

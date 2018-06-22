@@ -32,6 +32,7 @@ const initialState = {
     pickups: 0
   },
   meta: {
+    lastNotificationId: null,
     screenOpacity: 1,
     adminInProgress: false,
     userListInProgress: false,
@@ -283,7 +284,13 @@ export default (state = initialState, action) => {
     case 'NOTIFICATION':
       return {
         ...state,
-        notifications: updateRecordById(state.notifications, action.notification, 'notificationId')
+        notifications: action.onlyId
+          ? state.notifications
+          : updateRecordById(state.notifications, action.notification, 'notificationId'),
+        meta: {
+          ...state.meta,
+          lastNotificationId: action.notification.notificationId
+        }
       }
 
     case 'EXPO_TOKEN':

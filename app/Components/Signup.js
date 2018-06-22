@@ -11,7 +11,7 @@ const Form = t.form.Form
 
 const User = t.struct({
   name: t.String,
-  email: t.maybe(t.String),
+  email: t.maybe(utils.tform.Email),
   mobile: t.maybe(t.String),
   password: t.String,
   role: t.enums({
@@ -27,14 +27,18 @@ const User = t.struct({
 const options = {
   fields: {
     email: {
-      error: 'Require a valid email address?'
+      error: 'Require a valid email address?',
+      autoCapitalize: 'none',
+      keyboardType: 'email-address'
     },
     mobile: {
-      help: 'Either email or mobile is mandatory'
+      help: 'Either email or mobile is mandatory',
+      keyboardType: 'numeric'
     },
     password: {
       error: 'A good password',
-      secureTextEntry: true
+      secureTextEntry: true,
+      autoCapitalize: 'none'
     },
     terms: {
       label: 'Agree to Terms'
@@ -48,7 +52,8 @@ const options = {
     },
     otp: {
       label: 'Enter OTP',
-      help: 'Please enter the 6 digit OTP sent to your email/mobile'
+      help: 'Please enter the 6 digit OTP sent to your email/mobile',
+      keyboardType: 'numeric'
     }
   },
   stylesheet: utils.formStyles
@@ -122,10 +127,6 @@ class Signup extends Component {
       <Container>
         <Header tyle={{ paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
           <StatusBar hidden={true} barStyle="dark-content" />
-          <Left>
-            <Icon name="menu" />
-          </Left>
-          {/* <Body><Text style={{ fontSize: 20, color: 'white' }}>Signup</Text></Body> */}
           <Body>
             <Title>Signup</Title>
           </Body>

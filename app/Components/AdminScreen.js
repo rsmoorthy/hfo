@@ -35,7 +35,7 @@ class AdminScreen extends Component {
   static navigationOptions = {
     tabBarIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
     drawerIcon: ({ tintColor }) => <Icon name="ios-apps" style={{ color: tintColor }} />,
-    drawerName: 'Admin',
+    drawerLabel: 'Admin',
     header: null
   }
 
@@ -204,8 +204,8 @@ class _AdminTemplatesForm extends Component {
       },
       options: {
         fields: {
-          _id: { hidden: false },
-          type: { hidden: false },
+          _id: { hidden: true },
+          type: { hidden: true, editable: false },
           name: {
             template: require('../utils/select.android')
           },

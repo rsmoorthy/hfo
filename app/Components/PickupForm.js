@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Alert } from 'react-native'
+import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 import t from 'tcomb-form-native' // 0.6.9
@@ -30,8 +30,8 @@ const Form = t.form.Form
 
 class PickupForm extends Component {
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
-    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+    tabBarIcon: ({ tintColor }) => <Icon name="md-car" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="md-car" style={{ color: tintColor }} />,
     header: null
   }
 
@@ -42,9 +42,9 @@ class PickupForm extends Component {
         _id: t.String,
         passengerId: t.maybe(t.String),
         name: t.maybe(t.String),
-        email: t.maybe(t.String),
+        email: t.maybe(utils.tform.Email),
         mobile: t.maybe(t.String),
-        airport: t.enums({ Bangalore: 'Bangalore' }),
+        airport: t.enums({ Bengaluru: 'Bengaluru' }),
         flight: t.String,
         pickupDate: t.Date,
         receiverId: t.maybe(t.enums(receivers))
@@ -59,9 +59,9 @@ class PickupForm extends Component {
     return t.struct({
       passengerId: o.passengerId ? t.maybe(t.enums(passengers)) : t.enums(passengers),
       name: o.name ? t.maybe(t.String) : t.String,
-      email: o.email ? t.maybe(t.String) : t.String,
-      mobile: o.mobile ? t.maybe(t.String) : t.String,
-      airport: t.enums({ Bangalore: 'Bangalore' }),
+      email: o.email ? t.maybe(utils.tform.Email) : utils.tform.Email,
+      mobile: o.mobile ? t.maybe(t.String) : t.maybe(t.String),
+      airport: t.enums({ Bengaluru: 'Bengaluru' }),
       flight: t.String,
       pickupDate: t.Date,
       receiverId: t.maybe(t.enums(receivers))
@@ -71,13 +71,14 @@ class PickupForm extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      inProgress: false,
       type: this.getType({}, {}, {}),
       value: {
         passengerId: '',
         name: '',
         email: '',
         mobile: '',
-        airport: 'Bangalore',
+        airport: 'Bengaluru',
         flight: '',
         pickupDate: moment()
           .startOf('day')
@@ -88,8 +89,8 @@ class PickupForm extends Component {
         fields: {
           _id: { hidden: true },
           name: { hidden: false, editable: true },
-          email: { hidden: false, editable: true },
-          mobile: { hidden: false, editable: true },
+          email: { hidden: false, editable: true, autoCapitalize: 'none', keyboardType: 'email-address' },
+          mobile: { hidden: false, editable: true, keyboardType: 'numeric' },
           airport: {
             template: require('../utils/select.android')
           },
@@ -148,23 +149,30 @@ class PickupForm extends Component {
     const value = this._form.getValue()
     if (value) {
       this.state.value = value
-      if (value._id) this.props.doUpdatePickup(value)
+      this.setState({ inProgress: true })
+      if (value._id)
+        this.props.doUpdatePickup(value, (err, message) => {
+          this.setState({ inProgress: false })
+          if (err) Alert.alert('Error in Updating', err)
+          else {
+            this.props.navigation.navigate('PickupList')
+            Toast.show({ text: 'Updated Successfully.', buttonText: 'Ok', type: 'success', duration: 3000 })
+          }
+        })
       else
-        this.props.doAddPickup({
-          ...value,
-          callback: (err, message) => {
-            if (err) {
-              Alert.alert('Error in Flight check', err)
-            } else {
-              // Alert.alert('Flight check Success', message)
-              this.props.navigation.navigate('Pickups')
-              Toast.show({
-                text: 'Updated Successfully. Flight: ' + message,
-                buttonText: 'Ok',
-                type: 'success',
-                duration: 20000
-              })
-            }
+        this.props.doAddPickup(value, (err, message) => {
+          this.setState({ inProgress: false })
+          if (err) {
+            Alert.alert('Error in Flight check', err)
+          } else {
+            // Alert.alert('Flight check Success', message)
+            this.props.navigation.navigate('PickupList')
+            Toast.show({
+              text: 'Added Successfully. Flight: ' + message,
+              buttonText: 'Ok',
+              type: 'success',
+              duration: 20000
+            })
           }
         })
     }
@@ -239,7 +247,13 @@ class PickupForm extends Component {
                 </View>
               </CardItem>
               <CardItem>
-                <Button info block title="Submit!" style={{ width: '100%' }} onPress={this.handleSubmit}>
+                <Button
+                  info
+                  block
+                  disabled={this.state.inProgress}
+                  title="Submit!"
+                  style={{ width: '100%' }}
+                  onPress={this.handleSubmit}>
                   <Text> Submit </Text>
                 </Button>
               </CardItem>
@@ -276,6 +290,7 @@ class _AssignReceiverModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      inProgress: false,
       type: this.getType(this.props.receivers),
       value: {
         _id: '',
@@ -296,11 +311,12 @@ class _AssignReceiverModal extends Component {
 
   handleSubmit = () => {
     const value = this._form.getValue()
-    console.log('value', value)
     if (value) {
       this.state.value = value
       if (value._id) {
+        this.setState({ inProgress: true })
         this.props.doUpdatePickup(value, (err, message) => {
+          this.setState({ inProgress: false })
           if (err) Alert.alert('Failed to Assign receiver', err)
           else {
             Toast.show({ text: 'Updated Successfully', buttonText: 'Ok', type: 'success', duration: 5000 })
@@ -333,6 +349,7 @@ class _AssignReceiverModal extends Component {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '80%', borderRadius: 8, borderWidth: 1 }}>
           <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
+          {this.state.inProgress === true && <ActivityIndicator size="large" color="#000" />}
           <View style={{ padding: 20, width: '100%', alignSelf: 'stretch' }}>
             <Form
               ref={c => (this._form = c)}
@@ -356,8 +373,8 @@ export const AssignReceiverModal = connect(
 
 class _RequestPickup extends Component {
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
-    drawerIcon: ({ tintColor }) => <Icon name="ios-car" style={{ color: tintColor }} />,
+    tabBarIcon: ({ tintColor }) => <Icon name="md-car" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="md-car" style={{ color: tintColor }} />,
     header: null
   }
 
@@ -365,7 +382,7 @@ class _RequestPickup extends Component {
     const pickup = this.props.navigation.getParam('pickup', null)
     const struct = {
       passengerId: t.String,
-      airport: t.enums({ Bangalore: 'Bangalore' }),
+      airport: t.enums({ Bengaluru: 'Bengaluru' }),
       flight: t.String,
       pickupDate: t.Date
     }
@@ -380,7 +397,7 @@ class _RequestPickup extends Component {
       value: {
         _id: '',
         passengerId: this.props.login.id,
-        airport: 'Bangalore',
+        airport: 'Bengaluru',
         flight: '',
         pickupDate: moment()
           .startOf('day')
@@ -437,7 +454,7 @@ class _RequestPickup extends Component {
               Alert.alert('Error in Flight check', err)
             } else {
               // Alert.alert('Flight check Success', message)
-              this.props.navigation.navigate(this.props.login.role === 'Passenger' ? 'PassengerHome' : 'Pickups')
+              this.props.navigation.navigate(this.props.login.role === 'Passenger' ? 'PassengerHome' : 'PickupList')
               Toast.show({
                 text: 'Requested Successfully. Flight: ' + message,
                 buttonText: 'Ok',
