@@ -60,6 +60,7 @@ class GetPhotoModal extends Component {
     this.setState({ image: result.uri })
     console.log('imageUpdate', id, this.props.login.id, result.uri)
     if (id === this.props.login.id) {
+      console.log('updating login data')
       this.props.doUpdateLoginData({
         id: this.props.login.id,
         photo: 'data:image/jpeg;base64,' + result.base64

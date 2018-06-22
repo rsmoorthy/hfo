@@ -191,6 +191,7 @@ export const doUpdateLoginData = value => {
     })
       .then(response => {
         if (response.data.status === 'ok') {
+          console.log('do update login data', response.data.user.photo, state.hfo.login.photo)
           dispatch({ type: 'UPDATE_LOGIN_DATA', data: response.data.user })
         }
       })

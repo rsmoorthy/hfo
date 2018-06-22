@@ -176,7 +176,13 @@ class _FeedbackModal extends Component {
               options={this.state.options}
             />
           </View>
-          <Button info block title="Submit Feedback" style={{ width: '100%' }} onPress={this.handleSubmit}>
+          <Button
+            info
+            disabled={this.state.inProgress}
+            block
+            title="Submit Feedback"
+            style={{ width: '100%' }}
+            onPress={this.handleSubmit}>
             <Text> Submit Feedback </Text>
           </Button>
         </View>

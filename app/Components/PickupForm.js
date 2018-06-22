@@ -358,7 +358,13 @@ class _AssignReceiverModal extends Component {
               options={this.state.options}
             />
           </View>
-          <Button info block title="Assign" style={{ width: '100%' }} onPress={this.handleSubmit}>
+          <Button
+            info
+            disabled={this.state.inProgress}
+            block
+            title="Assign"
+            style={{ width: '100%' }}
+            onPress={this.handleSubmit}>
             <Text> Assign </Text>
           </Button>
         </View>

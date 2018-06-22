@@ -110,7 +110,7 @@ class Profile extends Component {
     const opacity = this.props.meta.screenOpacity
     const photo =
       this.props.login.photo && this.props.login.photo.length
-        ? { uri: this.props.login.photo, cache: 'reload' }
+        ? { uri: this.props.login.photo }
         : require('../assets/user1.jpg')
     return (
       <Container style={{ flex: 1, backgroundColor: '#EAE8EF', opacity: opacity }}>
