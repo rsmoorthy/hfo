@@ -103,7 +103,9 @@ router.post('/signupverify', async function(req, res, next) {
   var inp = req.body
   var ret
   let err = null
-  ret = await Users.findOne({ _id: inp.id }).exec().catch(e => err = e.message)
+  ret = await Users.findOne({ _id: inp.id })
+    .exec()
+    .catch(e => (err = e.message))
   if (ret === null || err !== null) return res.json({ status: 'error', message: 'Invalid id specified', error: err })
   if (ret.authCode !== inp.otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
 
@@ -119,7 +121,9 @@ router.get('/signupverify/:id/:otp', async function(req, res, next) {
   var ret
   let err = null
 
-  ret = await Users.findOne({ _id: id }).exec().catch(e => err = e.message)
+  ret = await Users.findOne({ _id: id })
+    .exec()
+    .catch(e => (err = e.message))
   if (ret === null || err !== null) return res.json({ status: 'error', message: 'Invalid id specified', error: err })
   if (ret.authCode !== otp.toString()) return res.json({ status: 'error', message: 'Invalid OTP specified' })
 
@@ -154,6 +158,8 @@ router.post('/login', async function(req, res, next) {
   )
     return res.json({ status: 'error', message: 'Invalid login credentials' })
 
+  if (ret.disabled === 'Yes') return res.json({ status: 'error', message: 'Access disabled' })
+
   // eslint-disable-next-line
   if (ret.expoToken != inp.expoToken) {
     await Users.findByIdAndUpdate(ret._id, { expoToken: inp.expoToken })
@@ -175,6 +181,18 @@ router.post('/login', async function(req, res, next) {
       lastSeen: ret.lastSeen
     }
   })
+})
+
+/* Logout */
+router.post('/logout', async function(req, res, next) {
+  var inp = req.body
+  var ret
+  ret = await Users.findById(inp.id).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid login id' })
+
+  if (ret.expoToken) await Users.findByIdAndUpdate(ret._id, { expoToken: '' })
+
+  return res.json({ status: 'ok' })
 })
 
 /* Google Signin */

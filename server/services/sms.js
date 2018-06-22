@@ -24,30 +24,30 @@ const smsSend = async (templName, row) => {
 
     case 'WelcomePassenger': {
       if (!row.mobile) return [null, '']
-      row.pickupDate = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
+      // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
       let [err, resp] = await sendSMS({ mobile: row.mobile, message: ejs.render(msg.template, row) })
       return [err, resp]
     }
 
     case 'NotifyReceiver': {
       if (!row.receiver.mobile) return [null, '']
-      row.pickupDate = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
+      // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
       let [err, resp] = await sendSMS({ mobile: row.receiver.mobile, message: ejs.render(msg.template, row) })
       return [err, resp]
     }
 
     case 'PassengerTripCompleted': {
       if (!row.mobile) return [null, '']
-      row.pickupDate = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
-      row.completedDate = moment(row.completedDate).format('Do MMM YYYY HH:mm')
+      // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
+      // row.completedDateFormat = moment(row.completedDate).format('Do MMM YYYY HH:mm')
       let [err, resp] = await sendSMS({ mobile: row.mobile, message: ejs.render(msg.template, row) })
       return [err, resp]
     }
 
     case 'ReceiverTripCompleted': {
       if (!row.receiver.mobile) return [null, '']
-      row.pickupDate = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
-      row.completedDate = moment(row.completedDate).format('Do MMM YYYY HH:mm')
+      // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
+      // row.completedDateFormat = moment(row.completedDate).format('Do MMM YYYY HH:mm')
       let [err, resp] = await sendSMS({ mobile: row.receiver.mobile, message: ejs.render(msg.template, row) })
       return [err, resp]
     }

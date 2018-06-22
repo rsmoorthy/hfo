@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 
 var TransactionsSchema = new mongoose.Schema({
   type: { type: String, enum: ['Success', 'Error', 'Log'] },
-  mode: { type: String, enum: ['SMS', 'Email'] },
+  mode: { type: String, enum: ['SMS', 'Email', 'Notification'] },
   subject: String,
   recordId: String,
   description: String,

@@ -16,6 +16,7 @@ const getLoginUser = async req => {
   var ret
   ret = await Users.findById(resp.id).exec()
   if (ret) {
+    resp._id = ret._id
     resp.name = ret.name
     resp.mobile = ret.mobile
     resp.email = ret.email
@@ -58,7 +59,9 @@ const promiseTo = async promise => {
 }
 
 const getPhotoUrl = (id, photo) => {
-  if (photo && photo.length && photo.substr(0, 4) === 'data') return config.SERVER_IP + '/users/photo/' + id
+  if (photo && photo.length && photo.substr(0, 4) === 'data') {
+    return config.SERVER_IP + '/users/photo/' + id + '/' + photo.length
+  }
   return photo === undefined ? '' : photo
 }
 

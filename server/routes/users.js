@@ -6,6 +6,7 @@ var Users = require('../models/Users')
 var R = require('ramda')
 var utils = require('../utils')
 var crypto = require('crypto')
+var notifications = require('../services/notifications')
 
 /* GET ALL Users */
 router.get('/:query?', async (req, res, next) => {
@@ -25,6 +26,7 @@ router.get('/:query?', async (req, res, next) => {
     mobile: 1,
     role: 1,
     photo: 1,
+    disabled: 1,
     lastSeen: 1,
     rating: 1,
     pickups: 1
@@ -34,7 +36,7 @@ router.get('/:query?', async (req, res, next) => {
 })
 
 /* Get Photo */
-router.get('/photo/:id', async (req, res, next) => {
+router.get('/photo/:id/:len?', async (req, res, next) => {
   var user = await utils.getLoginUser(req)
   // if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
   var id = req.params.id
@@ -70,10 +72,17 @@ router.post('/update/:id', async (req, res, next) => {
       .digest('hex')
   }
 
+  var row = await Users.findById(id).exec()
+
   var ret = await Users.findByIdAndUpdate(id, inp).exec()
   if (ret) {
+    if (inp.role && inp.role !== row.role && row.expoToken) {
+      let p = await notifications.notificationSend('Logout', {}, row._id)
+      console.log('logout notification', p)
+    }
+    ret = { ...ret._doc }
     ret.photo = utils.getPhotoUrl(ret._id, ret.photo)
-    return res.json({ status: 'ok' })
+    return res.json({ status: 'ok', user: ret })
   }
   return res.json({ status: 'error', message: 'Unable to update the User record' })
 })

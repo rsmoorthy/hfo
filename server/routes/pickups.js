@@ -17,16 +17,22 @@ var moment = require('moment')
 var cache = { time: 0, data: [] }
 
 /* Get list or a single record */
-router.get('/:id?', async function(req, res, next) {
+router.get('/:scope/:id?', async function(req, res, next) {
   var user = await utils.getLoginUser(req)
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
   var id = req.params.id
+  var scope = req.params.scope
 
   var q = {}
   if (id) q._id = id
-  else if (user.role === 'Agent') q.agentId = user.id
-  else if (user.role === 'Receiver') q.receiverId = user.id
-  else if (user.role === 'Passenger') q.passengerId = user.id
+  else {
+    if (scope === 'past') q.status = 'Completed'
+    else q.status = { $in: ['New', 'Assigned'] }
+  }
+
+  if (user.role === 'Agent') q.agentId = user.id
+  if (user.role === 'Receiver') q.receiverId = user.id
+  if (user.role === 'Passenger') q.passengerId = user.id
   var ret = await Pickups.find(q)
     .sort({ pickupDate: -1 })
     .exec()
@@ -104,6 +110,7 @@ router.post('/', async function(req, res, next) {
   if (err) return res.json({ status: 'error', message: err })
   inp = { ...iret }
   inp.status = inp.receiverId ? 'Assigned' : 'New'
+  if (user.role === 'Agent' || user.role === 'Admin') inp.agentId = user._id
 
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
@@ -151,7 +158,10 @@ router.put('/:id', async function(req, res, next) {
     inp = { ...iret }
   }
 
-  if (inp.receiverId && !rec.arrivalBay) inp.arrivalBay = getArrivalBay()
+  if (inp.receiverId && !rec.arrivalBay) {
+    inp.status = rec.status === 'New' ? 'Assigned' : rec.status
+    inp.arrivalBay = getArrivalBay()
+  }
 
   // Update passengerId if possible
   if (inp.passengerId === null && (inp.email || inp.mobile)) {
@@ -164,6 +174,7 @@ router.put('/:id', async function(req, res, next) {
 
   ret = await Pickups.findByIdAndUpdate(id, inp).exec()
   if (ret) {
+    ret = await Pickups.findById(id).exec()
     if (ret.receiverId && !ret.sentInitialMailSMS && (ret.status === 'New' || ret.status === 'Assigned')) {
       let row = await constructRecord(ret)
       await sms.smsSend('WelcomePassenger', row)
@@ -195,16 +206,23 @@ router.put('/complete/:id', async function(req, res, next) {
     upd.status = 'Completed'
     upd.completedDate = new Date()
   }
-  if (row.receiverId === user._id && !row.receiverCompleted) upd.receiverCompleted = new Date()
-  if (row.passengerId === user._id && !row.passengerCompleted) upd.passengerCompleted = new Date()
+  if (row.receiverId === id && !row.receiverCompleted) upd.receiverCompleted = new Date()
+  if (row.passengerId === id && !row.passengerCompleted) upd.passengerCompleted = new Date()
 
   ret = await Pickups.findByIdAndUpdate(id, upd).exec()
   if (!ret) return res.json({ status: 'error', message: 'Unable to update record' })
+  ret = await Pickups.findById(id).exec()
 
   // Increment pickups
   if (row.status !== 'Completed') {
-    if (row.passengerId) await Users.findByIdAndUpdate(row.passengerId, { $inc: { pickups: 1 } }).exec()
-    if (row.receiverId) await Users.findByIdAndUpdate(row.receiverId, { $inc: { pickups: 1 } }).exec()
+    if (row.passengerId) {
+      let count = await Pickups.count({ passengerId: row.passengerId, status: 'Completed' }).exec()
+      if (count) await Users.findByIdAndUpdate(row.passengerId, { pickups: count }).exec()
+    }
+    if (row.receiverId) {
+      let count = await Pickups.count({ receiverId: row.receiverId, status: 'Completed' }).exec()
+      if (count) await Users.findByIdAndUpdate(row.receiverId, { pickups: count }).exec()
+    }
     if (!row.completedMailSMS) {
       let row = await constructRecord(ret)
       await sms.smsSend('PassengerTripCompleted', row)
@@ -217,8 +235,12 @@ router.put('/complete/:id', async function(req, res, next) {
     }
   }
   if (inp.rating && row.receiverId) {
-    let urow = Users.findById(row.receiverId).exec()
-    let newrating = ((urow.rating ? urow.rating : 0) + inp.rating) * urow.pickups
+    let urow = await Users.findById(row.receiverId).exec()
+    let newrating = inp.rating
+    if (urow.pickups > 1 && urow.rating) {
+      newrating = ((urow.pickups - 1) * urow.rating) / urow.pickups
+      newrating = parseFloat(newrating.toFixed(2))
+    }
     await Users.findByIdAndUpdate(row.receiverId, { rating: newrating }).exec()
   }
   return res.json({ status: 'ok' })
@@ -226,7 +248,7 @@ router.put('/complete/:id', async function(req, res, next) {
 
 const constructRecord = async row => {
   row = row._doc ? row._doc : row
-  let p = { ...row._doc, receiver: {}, testing: 0 }
+  let p = { ...row, receiver: {}, testing: 0 }
 
   if ((p.name === null || p.name === undefined) && p.passengerId) {
     let u = await Users.findById(p.passengerId).exec()
@@ -250,6 +272,9 @@ const constructRecord = async row => {
       pickups: u.pickups
     }
   }
+
+  p.pickupDateFormat = p.pickupDate ? moment(p.pickupDate).format('Do MMM YYYY HH:mm') : ''
+  p.completedDateFormat = p.completedDate ? moment(p.completedDate).format('Do MMM YYYY HH:mm') : ''
   return p
 }
 
