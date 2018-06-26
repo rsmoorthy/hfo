@@ -151,7 +151,7 @@ class Login extends Component {
           <Text> </Text>
         </View>
         <View style={{ alignSelf: 'center' }}>
-          <Text style={{ color: 'white', fontSize: 12 }}>v0.9.2</Text>
+          <Text style={{ color: 'white', fontSize: 12 }}>v0.9.3</Text>
         </View>
       </View>
     )
