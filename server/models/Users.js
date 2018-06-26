@@ -12,6 +12,7 @@ var UsersSchema = new mongoose.Schema({
   photo: String,
   rating: Number,
   pickups: Number,
+  pickupsWithRating: Number,
   disabled: String,
   role: { type: String, enum: ['Admin', 'Passenger', 'Receiver', 'Agent', 'Display'] },
   created_at: { type: Date },

@@ -7,8 +7,7 @@ var aws = require('aws-sdk')
 var nodemailer = require('nodemailer')
 var Transactions = require('../models/Transactions')
 
-var config = require('../config')['sesaws']
-aws.config.update(config)
+var cfg = require('../config')
 
 var transporter = nodemailer.createTransport({
   SES: new aws.SES(),
@@ -16,6 +15,8 @@ var transporter = nodemailer.createTransport({
 })
 
 export const sendEmail = async email => {
+  var config = await cfg.getConfig()
+  aws.config.update(config['sesaws'])
   var params = {}
   params.from = email.from
   params.to = email.to
@@ -58,7 +59,8 @@ export const sendEmail = async email => {
 
 export const sendEmail2 = async email => {
   const ses = new aws.SES()
-  aws.config.update(config)
+  var config = await cfg.getConfig()
+  aws.config.update(config['sesaws'])
 
   let [err, ret] = await promiseTo(
     ses

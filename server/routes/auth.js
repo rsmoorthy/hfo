@@ -10,6 +10,7 @@ var path = require('path')
 var email = require('../services/email')
 var sms = require('../services/sms')
 var utils = require('../utils')
+var cfg = require('../config')
 
 var cache = { time: 0, data: [] }
 
@@ -66,6 +67,12 @@ router.post('/signup', async function(req, res, next) {
     Math.random()
       .toString(10)
       .substring(2, 5)
+
+  if (inp.referralCode) {
+    var config = await cfg.getConfig()
+    if (inp.referralCode === config.global.receiverReferralCode) inp.role = 'Receiver'
+    if (inp.referralCode === config.global.agentReferralCode) inp.role = 'Agent'
+  }
 
   if (ret) {
     // update the db
@@ -199,12 +206,14 @@ router.post('/logout', async function(req, res, next) {
 router.post('/googlesignin', async function(req, res, next) {
   var inp = req.body
   console.log(inp)
+  var signup = false
   var ret
   ret = await Users.findOne({ email: inp.email }).exec()
   if (ret === null) {
     inp.role = inp.role ? inp.role : 'Passenger'
     var newuser = new Users(inp)
     ret = await newuser.save()
+    signup = true
   } else {
     let upd = {}
     for (let key in inp) {
@@ -215,6 +224,49 @@ router.post('/googlesignin', async function(req, res, next) {
   }
 
   await Users.findByIdAndUpdate(ret._id, { lastSeen: new Date() })
+
+  return res.json({
+    status: 'ok',
+    value: {
+      _id: ret._id,
+      id: ret._id,
+      token: ret.token,
+      accessToken: ret.accessToken,
+      name: ret.name,
+      email: ret.email,
+      mobile: ret.mobile,
+      photo: ret.photo,
+      role: ret.role
+    },
+    signup: signup
+  })
+})
+
+/* Google Signin Complete */
+router.post('/googlesignin/complete', async function(req, res, next) {
+  var inp = req.body
+  console.log('googlesignin complete', inp)
+  var ret
+  ret = await Users.findById(inp._id).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid login id' })
+
+  if (inp.referralCode) {
+    var config = await cfg.getConfig()
+    if (inp.referralCode === config.global.receiverReferralCode) inp.role = 'Receiver'
+    if (inp.referralCode === config.global.agentReferralCode) inp.role = 'Agent'
+  }
+
+  if (inp.mobile) {
+    ret = await Users.findOne({ mobile: inp.mobile }).exec()
+    if (ret !== null)
+      return res.json({ status: 'error', message: 'Mobile number ' + inp.mobile + ' already registered' })
+  }
+
+  if (inp.role || inp.mobile) {
+    ret = await Users.findByIdAndUpdate(inp._id, inp).exec()
+    if (ret === null) return res.json({ status: 'error', message: 'Invalid login id' })
+    ret = await Users.findById(inp._id).exec()
+  }
 
   return res.json({
     status: 'ok',

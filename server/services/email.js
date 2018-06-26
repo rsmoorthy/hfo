@@ -17,7 +17,7 @@ const emailSend = async (templName, row) => {
       break
     case 'WelcomePassenger':
       file = path.join(__dirname, '../templates/email_welcomepassenger.ejs')
-      subject = 'Your HFO trip details'
+      subject = 'Your HFO pickup details'
       // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
       break
 
@@ -30,14 +30,14 @@ const emailSend = async (templName, row) => {
 
     case 'PassengerTripCompleted':
       file = path.join(__dirname, '../templates/email_completedpassenger.ejs')
-      subject = 'Your HFO trip completed'
+      subject = 'Your HFO pickup completed'
       // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
       // row.completedDateFormat = moment(row.completedDate).format('Do MMM YYYY HH:mm')
       break
 
     case 'ReceiverTripCompleted':
       file = path.join(__dirname, '../templates/email_completedreceiver.ejs')
-      subject = 'You completed HFO trip'
+      subject = 'You completed HFO pickup'
       // row.pickupDateFormat = moment(row.pickupDate).format('Do MMM YYYY HH:mm')
       // row.completedDateFormat = moment(row.completedDate).format('Do MMM YYYY HH:mm')
       row.email = row.receiver.email

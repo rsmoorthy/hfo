@@ -3,7 +3,7 @@ var rp = require('request-promise')
 var R = require('ramda')
 var moment = require('moment')
 
-var config = require('../config')['flightstats']
+var cfg = require('../config')
 
 const getAirportData = (airports, key, airportCode) => {
   let airport = R.filter(R.propEq('fs', airportCode), airports)
@@ -13,6 +13,8 @@ const getAirportData = (airports, key, airportCode) => {
 
 export const getSchedule = async (flight, arrivalDate = moment()) => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
+
+  var config = await cfg.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/schedules/rest/v1/json/flight/6E/347/arriving/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&extendedOptions=includeNewFields"
   var schedule = await rp
@@ -29,8 +31,8 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
         '/' +
         ad.date(),
       qs: {
-        appId: config.appId,
-        appKey: config.appKey,
+        appId: config.flightstats.appId,
+        appKey: config.flightstats.appKey,
         extendedOptions: 'includeNewFields'
       }
     })
@@ -97,6 +99,7 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
 
 export const getFlightStatus = async (flight, arrivalDate = moment()) => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
+  var config = await cfg.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&airport=BLR"
   var status = await rp.get({
@@ -112,15 +115,14 @@ export const getFlightStatus = async (flight, arrivalDate = moment()) => {
       '/' +
       ad.date(),
     qs: {
-      appId: config.appId,
-      appKey: config.appKey,
+      appId: config.flightstats.appId,
+      appKey: config.flightstats.appKey,
       extendedOptions: 'includeNewFields'
     }
   })
 
   status = JSON.parse(status)
-  if(status.flightTracks.length === 0)
-    return ['No flight tracks obtained']
+  if (status.flightTracks.length === 0) return ['No flight tracks obtained']
   var fl = status.flightStatuses[0]
   return {
     flight: fl.carrierFsCode + fl.flightNumber,
@@ -138,6 +140,7 @@ export const getFlightStatus = async (flight, arrivalDate = moment()) => {
 
 export const getFlightTrack = async (flight, arrivalDate = moment(), airport = 'BLR') => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
+  var config = await cfg.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&airport=BLR"
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/tracks/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&includeFlightPlan=false&airport=BLR&maxPositions=10"
@@ -156,8 +159,8 @@ export const getFlightTrack = async (flight, arrivalDate = moment(), airport = '
         '/' +
         ad.date(),
       qs: {
-        appId: config.appId,
-        appKey: config.appKey,
+        appId: config.flightstats.appId,
+        appKey: config.flightstats.appKey,
         airport: airport,
         maxPositions: 1,
         extendedOptions: 'includeNewFields'
@@ -168,8 +171,7 @@ export const getFlightTrack = async (flight, arrivalDate = moment(), airport = '
   if (err) return [err]
 
   status = JSON.parse(status)
-  if(status.flightTracks.length === 0)
-    return ['No flight tracks obtained']
+  if (status.flightTracks.length === 0) return ['No flight tracks obtained']
   var fl = status.flightTracks[0]
   var position = fl.positions && fl.positions.length ? fl.positions[0] : {}
   if (fl.positions && fl.positions.length) {

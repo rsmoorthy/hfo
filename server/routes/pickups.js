@@ -13,6 +13,7 @@ var email = require('../services/email')
 var notifications = require('../services/notifications')
 var ejs = require('ejs')
 var moment = require('moment')
+var config = require('../config')['global']
 
 var cache = { time: 0, data: [] }
 
@@ -59,6 +60,7 @@ router.get('/:scope/:id?', async function(req, res, next) {
           mobile: u.mobile,
           email: u.email,
           photo: u.photo ? utils.getPhotoUrl(p.receiverId, u.photo) : '',
+          role: u.role,
           rating: u.rating,
           pickups: u.pickups
         }
@@ -208,6 +210,8 @@ router.put('/complete/:id', async function(req, res, next) {
   }
   if (row.receiverId === id && !row.receiverCompleted) upd.receiverCompleted = new Date()
   if (row.passengerId === id && !row.passengerCompleted) upd.passengerCompleted = new Date()
+  if (inp.rating) upd.rating = inp.rating
+  if (inp.feedback) upd.feedback = inp.feedback
 
   ret = await Pickups.findByIdAndUpdate(id, upd).exec()
   if (!ret) return res.json({ status: 'error', message: 'Unable to update record' })
@@ -236,14 +240,32 @@ router.put('/complete/:id', async function(req, res, next) {
   }
   if (inp.rating && row.receiverId) {
     let urow = await Users.findById(row.receiverId).exec()
+    let pickupsWithRating = await Pickups.count({
+      status: 'Completed',
+      receiverId: row.receiverId,
+      rating: { $gt: 0 }
+    }).exec()
     let newrating = inp.rating
-    if (urow.pickups > 1 && urow.rating) {
-      newrating = ((urow.pickups - 1) * urow.rating) / urow.pickups
+    if (pickupsWithRating > 1 && urow.rating) {
+      newrating = ((pickupsWithRating - 1) * urow.rating + inp.rating) / pickupsWithRating
       newrating = parseFloat(newrating.toFixed(2))
     }
     await Users.findByIdAndUpdate(row.receiverId, { rating: newrating }).exec()
   }
   return res.json({ status: 'ok' })
+})
+
+/* recompute rating, pickups */
+router.put('/computeRating/:receiverId', async function(req, res, next) {
+  var user = await utils.getLoginUser(req)
+  // if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
+
+  var inp = req.body
+  var receiverId = req.params.receiverId
+  var ret, row
+
+  let [rating, pickups] = await computeRating(receiverId)
+  return res.json({ status: 'ok', rating: rating, pickups: pickups })
 })
 
 const constructRecord = async row => {
@@ -307,6 +329,25 @@ const updateFlightSchedule = async inp => {
 
 const getArrivalBay = pickupDate => {
   return 'A1'
+}
+
+const computeRating = async receiverId => {
+  let urow = await Users.findById(receiverId).exec()
+  let pickups = await Pickups.count({ status: 'Completed', receiverId: receiverId })
+
+  if (pickups - (urow.pickupsWithRating || 0) > config.ratingAfterSoManyPickups) {
+    let ratings = await Pickups.find({ status: 'Completed', receiverId: receiverId, rating: { $gt: 0 } }, { rating: 1 })
+
+    let avg = R.pipe(
+      R.map(R.prop('rating')),
+      R.mean
+    )(ratings)
+    console.log('computeRating', avg, pickups)
+    return [avg, pickups]
+  } else {
+    console.log('computeRating existing', urow.rating, pickups)
+    return [urow.rating, pickups]
+  }
 }
 
 module.exports = router

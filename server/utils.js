@@ -6,7 +6,7 @@ var Pickups = require('./models/Pickups')
 var Users = require('./models/Users')
 var R = require('ramda')
 var crypto = require('crypto')
-var config = require('./config')['global']
+var config = require('./config')['config']['global']
 
 const getLoginUser = async req => {
   if (!('authorization' in req.headers)) return {}

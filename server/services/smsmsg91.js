@@ -11,20 +11,23 @@ export const sendSMS = async sms => {
   if (mobile.length === 10) mobile = '91' + mobile
   else if (mobile.length === 13 && mobile.substr(0, 3) === '+91') mobile = mobile.substr(1)
 
+  // http://api.msg91.com/api/sendhttp.php?sender=HFOINC&route=4&mobiles=9980018517&
+  // authkey=221837AqiQBg3Z5b2ca1fb&country=91&
+  // message=Dear Moorthy, Welcome to Bengaluru airport. Madav will receive you at the Departure Exit Bay - Digital Screen A1, Contact No 9245252802. Have Safe Drive - HFO
+
   var config = await cfg.getConfig()
 
   let err, tr, ret
   var resp = await rp
     .get({
-      uri: 'http://api.smscountry.com/SMSCwebservice_bulk.aspx',
+      uri: 'http://api.msg91.com/api/sendhttp.php',
       qs: {
-        User: config.smscountry.User,
-        passwd: config.smscountry.passwd,
-        mobilenumber: mobile,
-        message: sms.message,
-        sid: config.smscountry.sid,
-        mtype: 'N',
-        DR: 'Y'
+        authkey: config.smsmsg91.authkey,
+        sender: 'HFOINC',
+        route: '4',
+        mobiles: mobile,
+        country: '91',
+        message: sms.message
       }
     })
     .catch(e => (err = e.message))

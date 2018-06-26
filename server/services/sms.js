@@ -1,4 +1,4 @@
-import { sendSMS } from './smscountry'
+import { sendSMS } from './smsmsg91'
 var Templates = require('../models/Templates')
 var Users = require('../models/Users')
 var Pickups = require('../models/Pickups')
