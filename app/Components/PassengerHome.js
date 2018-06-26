@@ -25,7 +25,7 @@ import {
   Alert,
   Toast
 } from 'native-base'
-import CardComponent from './CardComponent'
+// import CardComponent from './CardComponent'
 import PickupList, {
   ProfileInfo,
   ArrivalBay,

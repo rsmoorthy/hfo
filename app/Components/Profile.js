@@ -24,7 +24,6 @@ import { getStatusBarHeight } from 'react-native-status-bar-height'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 
-import CardComponent from './CardComponent'
 var { height, width } = Dimensions.get('window')
 
 class Profile extends Component {

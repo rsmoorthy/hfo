@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   TouchableHighlight,
   TouchableOpacity,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native'
 import { Icon } from 'native-base'
 
@@ -84,12 +85,18 @@ class Login extends Component {
 
     console.log('google signin', result.type, result.accessToken, result)
     if (result.type === 'success') {
-      this.props.doGoogleSignin({
-        name: result.user.name,
-        email: result.user.email,
-        photo: result.user.photoUrl,
-        accessToken: result.accessToken
-      })
+      this.props.doGoogleSignin(
+        {
+          name: result.user.name,
+          email: result.user.email,
+          photo: result.user.photoUrl,
+          accessToken: result.accessToken
+        },
+        (err, resp) => {
+          if (err) Alert.alert('Failed to Google Signin: ' + err)
+          if (resp.signup) this.props.navigation.navigate('GoogleSignup', { value: { ...resp.value } })
+        }
+      )
     }
   }
 

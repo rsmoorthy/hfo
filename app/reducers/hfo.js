@@ -45,6 +45,7 @@ const initialState = {
     pickupCompleteError: '',
     pickupCompleteSuccess: ''
   },
+  config: {},
   text: '',
   apps: [],
   dummyData: {}
@@ -300,12 +301,14 @@ export default (state = initialState, action) => {
       }
 
     case 'ADMIN_IN_PROGRESS':
+      var cfg = state.config || {}
       return {
         ...state,
         meta: {
           ...state.meta,
           adminInProgress: true
-        }
+        },
+        config: cfg
       }
 
     case 'TEMPLATES_LIST':
@@ -318,6 +321,16 @@ export default (state = initialState, action) => {
         notificationTemplates: action.templates
           ? R.filter(item => item.type === 'Notification', action.templates)
           : state.notificationTemplates,
+        meta: {
+          ...state.meta,
+          adminInProgress: false
+        }
+      }
+
+    case 'ADMIN_CONFIG':
+      return {
+        ...state,
+        config: action.config ? action.config : state.config ? state.config : {},
         meta: {
           ...state.meta,
           adminInProgress: false

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, ScrollView, Text, StatusBar, ActivityIndicator, StyleSheet, Button } from 'react-native'
+import { View, ScrollView, Text, StatusBar, ActivityIndicator, StyleSheet, Button, Alert } from 'react-native'
 import t from 'tcomb-form-native' // 0.6.9
 import { connect } from 'react-redux'
 import * as utils from '../utils'
@@ -21,7 +21,8 @@ const User = t.struct({
     Agent: 'Agent',
     Display: 'Display'
   }),
-  terms: t.Boolean
+  referralCode: t.maybe(t.String)
+  // terms: t.Boolean
 })
 
 const options = {
@@ -54,6 +55,10 @@ const options = {
       label: 'Enter OTP',
       help: 'Please enter the 6 digit OTP sent to your email/mobile',
       keyboardType: 'numeric'
+    },
+    referralCode: {
+      label: 'Referral Code (optional)',
+      autoCapitalize: 'characters'
     }
   },
   stylesheet: utils.formStyles
@@ -189,6 +194,82 @@ class Signup extends Component {
 }
 
 export default connect(utils.mapStateToProps('hfo', ['signup']), utils.mapDispatchToProps)(Signup)
+
+class _GoogleSignup extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      type: this.getType(),
+      value: {
+        _id: '',
+        mobile: '',
+        referralCode: ''
+      },
+      options: {
+        fields: {
+          _id: { hidden: true },
+          referralCode: { autoCapitalize: 'characters' }
+        },
+        stylesheet: utils.formStyles
+      }
+    }
+  }
+
+  getType = () => {
+    return t.struct({
+      _id: t.String,
+      mobile: t.maybe(t.String),
+      referralCode: t.maybe(t.String)
+    })
+  }
+
+  static navigationOptions = {
+    tabBarIcon: ({ tintColor }) => <Icon name="ios-chatboxes" style={{ color: tintColor }} />
+  }
+
+  handleSubmit = () => {
+    const value = this._form.getValue()
+    if (value) {
+      this.state.value = value
+      this.props.doGoogleSigninComplete(value, (err, resp) => {
+        if (err) Alert.alert('Failed to complete signup: ' + err)
+      })
+    }
+  }
+
+  componentWillMount() {
+    const value = this.props.navigation.getParam('value', null)
+    if (value) this.setState({ value: value })
+  }
+
+  render() {
+    return (
+      <Container>
+        <Header tyle={{ paddingTop: getStatusBarHeight(), height: 54 + getStatusBarHeight() }}>
+          <StatusBar hidden={true} barStyle="dark-content" />
+          <Body>
+            <Title>Signup</Title>
+          </Body>
+        </Header>
+        <Content style={{ backgroundColor: '#EAE8EF' }}>
+          <View style={styles.container}>
+            <View>
+              <Form
+                ref={c => (this._form = c)}
+                type={this.state.type}
+                value={this.state.value}
+                options={this.state.options}
+              />
+              <Button title="Complete Sign Up!" onPress={this.handleSubmit} />
+            </View>
+          </View>
+        </Content>
+      </Container>
+    )
+  }
+}
+
+export const GoogleSignup = connect(utils.mapStateToProps('hfo', ['signup']), utils.mapDispatchToProps)(_GoogleSignup)
 
 const styles = StyleSheet.create({
   container: {

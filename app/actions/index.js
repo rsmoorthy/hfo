@@ -22,12 +22,8 @@ export const getCurrentFlights = () => {
         dispatch({ type: 'CURRENT_FLIGHTS', flights: response.data })
       })
       .catch(error => {
-        // console.log('error.response', error.response)
-        // console.log('error.request', error.request)
         console.log('error.message', error.message)
-        // console.log('error.config', error.config)
       })
-    // setTimeout(() => { dispatch( {type: "CURRENT_FLIGHTS", flights }) }, 3000)
   }
 }
 
@@ -103,7 +99,7 @@ export const doLogin = value => {
   }
 }
 
-export const doGoogleSignin = value => {
+export const doGoogleSignin = (value, callback) => {
   return (dispatch, getState) => {
     dispatch({ type: 'LOGIN_IN_PROGRESS' })
     let state = getState()
@@ -113,10 +109,39 @@ export const doGoogleSignin = value => {
     axios
       .post(host + '/auth/googlesignin', value)
       .then(response => {
-        if (response.data.status === 'ok') dispatch({ type: 'LOGIN_SUCCESS', value: response.data.value })
-        else dispatch({ type: 'LOGIN_FAILURE', message: response.data.message })
+        if (response.data.status === 'ok') {
+          if (response.data.signup === false) dispatch({ type: 'LOGIN_SUCCESS', value: response.data.value })
+          if (callback) callback(null, response.data)
+        } else {
+          if (callback) callback(response.data.message)
+          dispatch({ type: 'LOGIN_FAILURE', message: response.data.message })
+        }
       })
       .catch(error => {
+        if (callback) callback(error.message)
+        dispatch({ type: 'LOGIN_FAILURE', message: error.message })
+      })
+  }
+}
+
+export const doGoogleSigninComplete = (value, callback) => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'LOGIN_IN_PROGRESS' })
+    value = { ...value }
+
+    axios
+      .post(host + '/auth/googlesignin/complete', value)
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'LOGIN_SUCCESS', value: response.data.value })
+          if (callback) callback(null, response.data)
+        } else {
+          if (callback) callback(response.data.message)
+          dispatch({ type: 'LOGIN_FAILURE', message: response.data.message })
+        }
+      })
+      .catch(error => {
+        if (callback) callback(error.message)
         dispatch({ type: 'LOGIN_FAILURE', message: error.message })
       })
   }
@@ -408,6 +433,55 @@ export const doUpdateTemplate = (value, callback) => {
       })
       .catch(error => {
         dispatch({ type: 'TEMPLATES_LIST' })
+        if (callback) callback(error)
+      })
+  }
+}
+
+export const getServerConfig = callback => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'ADMIN_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'GET',
+      url: host + '/config',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      }
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'ADMIN_CONFIG', config: response.data.config })
+          if (callback) callback(null, response.data.message)
+        } else dispatch({ type: 'ADMIN_CONFIG', config: {} })
+      })
+      .catch(error => {
+        dispatch({ type: 'ADMIN_CONFIG', config: {} })
+        if (callback) callback(error)
+      })
+  }
+}
+
+export const doUpdateServerConfig = (value, callback) => {
+  return (dispatch, getState) => {
+    dispatch({ type: 'ADMIN_IN_PROGRESS' })
+    const state = getState()
+    axios({
+      method: 'PUT',
+      url: host + '/config',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      },
+      data: value
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          dispatch({ type: 'ADMIN_CONFIG', config: response.data.config })
+          if (callback) callback(null, response.data.message)
+        } else dispatch({ type: 'ADMIN_CONFIG' })
+      })
+      .catch(error => {
+        dispatch({ type: 'ADMIN_CONFIG' })
         if (callback) callback(error)
       })
   }

@@ -6,18 +6,14 @@ import PassengerHome, { PastPassengerList } from './PassengerHome'
 import { UserList } from './UserList'
 import UserForm from './UserForm'
 import FlightArrivals from './FlightArrivals'
-import SearchTab from './AppTabNavigator/SearchTab'
-import AddMediaTab from './AppTabNavigator/AddMediaTab'
-import LikesTab from './AppTabNavigator/LikesTab'
 import Profile from './Profile'
 import DisplayList from './DisplayList'
-import Signup from './Signup'
+import Signup, { GoogleSignup } from './Signup'
 import PickupForm, { AssignReceiverModal, RequestPickup } from './PickupForm'
 import PickupList, { PickupView, PastPickupList } from './PickupList'
-import AdminScreen, { AdminTemplatesList, AdminTemplatesForm } from './AdminScreen'
+import AdminScreen, { AdminTemplatesList, AdminTemplatesForm, ConfigItemForm } from './AdminScreen'
 import ModalScreen, { FeedbackModal } from './ModalScreen'
 import GetPhotoModal from './GetPhotoModal'
-import DisplayTab from './AppTabNavigator/DisplayTab'
 import { connect } from 'react-redux'
 import * as utils from '../utils'
 import registerForPushNotifications from '../services/notifications'
@@ -165,13 +161,14 @@ class MainScreen extends Component {
     const pastPickupStack = createStackNavigator({ PastPickupList, PickupView }, { initialRouteName: 'PastPickupList' })
     const adminUsersStack = createStackNavigator({ UserList, UserForm }, { initialRouteName: 'UserList' })
     const adminScreensStack = createStackNavigator(
-      { AdminScreen, AdminTemplatesList, AdminTemplatesForm, UserList, UserForm },
+      { AdminScreen, AdminTemplatesList, AdminTemplatesForm, UserList, UserForm, ConfigItemForm },
       { initialRouteName: 'AdminScreen' }
     )
     const authStack = createSwitchNavigator(
       {
         Login: Login,
-        Signup: Signup
+        Signup: Signup,
+        GoogleSignup: GoogleSignup
       },
       { initialRouteName: 'Login' }
     )
@@ -331,143 +328,7 @@ class MainScreen extends Component {
   }
 }
 
-class HomeScreen2 extends React.Component {
-  render() {
-    return (
-      <View>
-        <Text>Home</Text>
-        <Button title="Menu" onPress={() => this.props.navigation.toggleDrawer()} />
-      </View>
-    )
-  }
-}
-
-class OtherScreen2 extends React.Component {
-  render() {
-    const np = this.props.navigation.getParam('addl', '0')
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Other</Text>
-        <Button title="Go to Signin" onPress={() => NavigatorService.navigate('Auth', {}, 'SignIn')} />
-        <Button title="Go to Signout" onPress={() => NavigatorService.navigate('Auth', {}, 'SignOut')} />
-        <Button title="Go to Home" onPress={() => NavigatorService.navigate('App', {}, 'Home')} />
-        <Button title="Go to Home 2" onPress={() => this.props.navigation.push('Home')} />
-        <Button title="Go to Signin 2" onPress={() => NavigatorService.push('Auth', {})} />
-        <Button title="Menu" onPress={() => this.props.navigation.toggleDrawer()} />
-      </View>
-    )
-  }
-}
-
-class SignInScreen2 extends React.Component {
-  render() {
-    return (
-      <View>
-        <Text>Signin</Text>
-        <Button title="Menu" onPress={() => this.props.navigation.toggleDrawer()} />
-      </View>
-    )
-  }
-}
-
-class SignOutScreen2 extends React.Component {
-  render() {
-    return (
-      <View>
-        <Text>SignOut</Text>
-        <Button title="Menu" onPress={() => this.props.navigation.toggleDrawer()} />
-      </View>
-    )
-  }
-}
-
-class AuthLoading extends React.Component {
-  constructor(props) {
-    super(props)
-    setTimeout(() => props.navigation.navigate('Other', { addl: '1' }), 5000)
-  }
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text>Auth Loading</Text>
-        <ActivityIndicator />
-        <StatusBar translucent={true} barStyle="dark-content" />
-      </View>
-    )
-  }
-}
-
-/*
-const AppStack = createTabNavigator({ Home: HomeScreen2, Other: OtherScreen2 })
-const AuthStack = createTabNavigator({ SignIn: SignInScreen2, SignOut: SignOutScreen2 })
-const MainScreen2 = createSwitchNavigator(
-  {
-    AuthLoading: AuthLoading,
-    App: AppStack,
-    Auth: AuthStack
-  },
-  {
-    initialRouteName: 'AuthLoading'
-  }
-)
-
-const MainScreen3 = createDrawerNavigator({
-  App: AppStack,
-  Auth: AuthStack
-})
-*/
-
 export default connect(utils.mapStateToProps('hfo', ['login', 'meta']), utils.mapDispatchToProps)(MainScreen)
-
-/*
-const AppTabNavigator = createTabNavigator(
-  {
-    Login: {
-      screen: Login
-    },
-    Signup: {
-      screen: Signup
-    },
-    PickupForm: {
-      screen: PickupForm
-    },
-    PassengerHome: {
-      screen: PassengerHome
-    },
-    FlightArrivals: {
-      screen: FlightArrivals
-    },
-    PassengerArrivalsTab: {
-      screen: PassengerArrivalsTab
-    },
-    Profile: {
-      screen: Profile
-    },
-    DisplayTab: {
-      screen: DisplayTab
-    }
-  },
-  {
-    animationEnabled: true,
-    swipeEnabled: true,
-    tabBarPosition: 'bottom',
-    tabBarOptions: {
-      style: {
-        ...Platform.select({
-          android: {
-            backgroundColor: 'white'
-          }
-        })
-      },
-      activeTintColor: '#55acee',
-      inactiveTintColor: '#000000', // '#d1cece',
-      showLabel: false,
-      showIcon: true
-    }
-  }
-)
-*/
 
 const styles = StyleSheet.create({
   container: {
