@@ -43,6 +43,11 @@ const emailSend = async (templName, row) => {
       row.email = row.receiver.email
       break
 
+    case 'ResetPassword':
+      file = path.join(__dirname, '../templates/email_resetpassword.ejs')
+      subject = 'Your password has been reset'
+      break
+
     default:
       return ['Invalid Email Template name']
   }

@@ -3,7 +3,7 @@ var rp = require('request-promise-native')
 var R = require('ramda')
 var moment = require('moment')
 var Transactions = require('../models/Transactions')
-var cfg = require('../config')
+var utils = require('../utils')
 
 export const sendSMS = async sms => {
   var mobile = sms.mobile.toString()
@@ -11,7 +11,7 @@ export const sendSMS = async sms => {
   if (mobile.length === 10) mobile = '91' + mobile
   else if (mobile.length === 13 && mobile.substr(0, 3) === '+91') mobile = mobile.substr(1)
 
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   let err, tr, ret
   var resp = await rp

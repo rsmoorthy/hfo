@@ -3,7 +3,7 @@ var rp = require('request-promise-native')
 var R = require('ramda')
 var moment = require('moment')
 var Transactions = require('../models/Transactions')
-var cfg = require('../config')
+var utils = require('../utils')
 
 export const sendSMS = async sms => {
   var mobile = sms.mobile.toString()
@@ -15,7 +15,7 @@ export const sendSMS = async sms => {
   // authkey=221837AqiQBg3Z5b2ca1fb&country=91&
   // message=Dear Moorthy, Welcome to Bengaluru airport. Madav will receive you at the Departure Exit Bay - Digital Screen A1, Contact No 9245252802. Have Safe Drive - HFO
 
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   let err, tr, ret
   var resp = await rp

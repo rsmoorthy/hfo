@@ -487,6 +487,47 @@ export const doUpdateServerConfig = (value, callback) => {
   }
 }
 
+export const doResetPassword = (value, callback) => {
+  return (dispatch, getState) => {
+    axios({
+      method: 'POST',
+      url: host + '/auth/resetpassword',
+      data: value
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          if (callback) callback(null, response.data.message)
+        } else if (callback) callback(response.data.message)
+      })
+      .catch(error => {
+        console.log(error.message)
+        if (callback) callback(error.message)
+      })
+  }
+}
+
+export const doChangePassword = (value, callback) => {
+  return (dispatch, getState) => {
+    const state = getState()
+    axios({
+      method: 'POST',
+      url: host + '/auth/changepassword',
+      headers: {
+        Authorization: 'token ' + state.hfo.login.token
+      },
+      data: { ...value, _id: state.hfo.login.id }
+    })
+      .then(response => {
+        if (response.data.status === 'ok') {
+          if (callback) callback(null, response.data.message)
+        } else if (callback) callback(response.data.message)
+      })
+      .catch(error => {
+        if (callback) callback(error.message)
+      })
+  }
+}
+
 // Remove the rest of it
 export const doIncrement = () => ({
   type: 'INCREMENT'

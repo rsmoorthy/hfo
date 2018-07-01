@@ -10,7 +10,6 @@ var path = require('path')
 var email = require('../services/email')
 var sms = require('../services/sms')
 var utils = require('../utils')
-var cfg = require('../config')
 
 var cache = { time: 0, data: [] }
 
@@ -69,7 +68,7 @@ router.post('/signup', async function(req, res, next) {
       .substring(2, 5)
 
   if (inp.referralCode) {
-    var config = await cfg.getConfig()
+    var config = await utils.getConfig()
     if (inp.referralCode === config.global.receiverReferralCode) inp.role = 'Receiver'
     if (inp.referralCode === config.global.agentReferralCode) inp.role = 'Agent'
   }
@@ -202,6 +201,69 @@ router.post('/logout', async function(req, res, next) {
   return res.json({ status: 'ok' })
 })
 
+/* Reset Password */
+router.post('/resetpassword', async function(req, res, next) {
+  var inp = req.body
+  var ret
+  if (inp.email === null && inp.mobile === null)
+    return res.json({ status: 'error', message: 'One of Email or Mobile should be specified' })
+  var q = {}
+  if (inp.email) q.email = inp.email.toLowerCase()
+  if (inp.mobile) q.mobile = inp.mobile
+  ret = await Users.findOne(q).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid login id for reset password' })
+
+  var password =
+    Math.random()
+      .toString(36)
+      .substring(2, 5) +
+    Math.random()
+      .toString(36)
+      .substring(2, 5)
+
+  var hash = crypto
+    .createHash('md5')
+    .update(password)
+    .digest('hex')
+
+  ret = await Users.findByIdAndUpdate(ret._id, { password: hash })
+  var row = { password: password, _id: ret._id, mobile: ret.mobile, email: ret.email, name: ret.name }
+  console.log('reset password', password, hash, ret._id)
+  if (ret.mobile) await sms.smsSend('ResetPassword', row)
+  if (ret.email) await email.emailSend('ResetPassword', row)
+  return res.json({ status: 'ok' })
+})
+
+/* Reset Password */
+router.post('/changepassword', async function(req, res, next) {
+  var user = await utils.getLoginUser(req)
+  if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
+
+  var inp = req.body
+  var ret
+  ret = await Users.findById(inp._id).exec()
+  if (ret === null) return res.json({ status: 'error', message: 'Invalid id for change password' })
+
+  if (
+    ret.password &&
+    ret.password !==
+      crypto
+        .createHash('md5')
+        .update(inp.old_password)
+        .digest('hex')
+  )
+    return res.json({ status: 'error', message: 'Incorrect existing password' })
+
+  var hash = crypto
+    .createHash('md5')
+    .update(inp.password)
+    .digest('hex')
+
+  ret = await Users.findByIdAndUpdate(ret._id, { password: hash })
+  console.log('change password', inp.password, hash, ret._id)
+  return res.json({ status: 'ok' })
+})
+
 /* Google Signin */
 router.post('/googlesignin', async function(req, res, next) {
   var inp = req.body
@@ -251,7 +313,7 @@ router.post('/googlesignin/complete', async function(req, res, next) {
   if (ret === null) return res.json({ status: 'error', message: 'Invalid login id' })
 
   if (inp.referralCode) {
-    var config = await cfg.getConfig()
+    var config = await utils.getConfig()
     if (inp.referralCode === config.global.receiverReferralCode) inp.role = 'Receiver'
     if (inp.referralCode === config.global.agentReferralCode) inp.role = 'Agent'
   }

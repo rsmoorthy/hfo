@@ -3,7 +3,7 @@ var rp = require('request-promise-native')
 var R = require('ramda')
 var moment = require('moment')
 
-var cfg = require('../config')
+var utils = require('../utils')
 
 const extractFlightData = flights => {
   var result = []
@@ -42,7 +42,7 @@ const extractFlightData = flights => {
 
 export const getAirportBoards = async airport => {
   airport = airport || 'VOBL'
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   var enroute = await rp.post({
     uri: 'https://flightxml.flightaware.com/json/FlightXML3/AirportBoards',
@@ -84,7 +84,7 @@ export const getAirportBoards = async airport => {
 
 export const getFlightInfoStatus = async (icaoFlightNumber, arrivalDate = moment()) => {
   arrivalDate = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   let err
   var details = await rp
@@ -125,7 +125,7 @@ export const getFlightInfoStatus = async (icaoFlightNumber, arrivalDate = moment
 }
 
 export const getFlightTrack = async faFlightID => {
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
   var track = await rp.post({
     uri: 'https://flightxml.flightaware.com/json/FlightXML3/GetFlightTrack',
     form: {

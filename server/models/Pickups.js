@@ -48,6 +48,8 @@ var PickupsSchema = new mongoose.Schema({
   status: { type: String, enum: ['New', 'Assigned', 'Arrived', 'Completed'] },
   sentInitialMailSMS: Date,
   sentReminderMailSMS: Date,
+  sentReminderPassenger: Date,
+  sentReminderReceiver: Date,
   completedMailSMS: Date,
   updated_at: { type: Date, default: Date.now }
 })

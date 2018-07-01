@@ -52,6 +52,11 @@ const smsSend = async (templName, row) => {
       return [err, resp]
     }
 
+    case 'ResetPassword': {
+      let [err, resp] = await sendSMS({ mobile: row.mobile, message: ejs.render(msg.template, row) })
+      return [err, resp]
+    }
+
     default:
       return ['Invalid SMS Template name']
   }

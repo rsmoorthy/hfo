@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { View, ScrollView, Image, StyleSheet, Platform, ActivityIndicator, StatusBar, Dimensions } from 'react-native'
 
-import Login from './Login'
+import Login, { ForgotPasswordModal, ChangePasswordModal } from './Login'
 import PassengerHome, { PastPassengerList } from './PassengerHome'
 import { UserList } from './UserList'
 import UserForm from './UserForm'
@@ -303,7 +303,9 @@ class MainScreen extends Component {
         Modal: ModalScreen,
         GetPhotoModal: GetPhotoModal,
         AssignReceiverModal: AssignReceiverModal,
-        FeedbackModal: FeedbackModal
+        FeedbackModal: FeedbackModal,
+        ForgotPasswordModal: ForgotPasswordModal,
+        ChangePasswordModal: ChangePasswordModal
       },
       {
         mode: 'modal',

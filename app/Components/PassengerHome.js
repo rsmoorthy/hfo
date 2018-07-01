@@ -31,7 +31,7 @@ import PickupList, {
   ArrivalBay,
   FlightScheduleInfo,
   FlightStatus,
-  CompleteTrip,
+  CompletePickup,
   PickupView
 } from './PickupList'
 
@@ -72,7 +72,7 @@ class ItemView extends Component {
               <FlightStatus style={{ flex: 1, paddingLeft: 5 }} item={item} navigation={this.props.navigation} />
             </CardItem>
             <CardItem bordered>
-              <CompleteTrip
+              <CompletePickup
                 style={{
                   alignSelf: 'stretch',
                   width: '100%',

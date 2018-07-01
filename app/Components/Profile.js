@@ -184,6 +184,20 @@ class Profile extends Component {
                     </View>
                   )}
                   <Text>{this.props.login.role}</Text>
+                  <TouchableHighlight
+                    style={{
+                      flex: 0.1,
+                      padding: 0,
+                      marginTop: 10,
+                      marginBottom: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onPress={() => this.props.navigation.push('ChangePasswordModal')}>
+                    <View style={{ height: 30, padding: 5, backgroundColor: '#2296f3' }}>
+                      <Text style={{ flex: 1, fontSize: 12, color: 'white', fontWeight: 'bold' }}>Change Password</Text>
+                    </View>
+                  </TouchableHighlight>
                 </View>
               </View>
             </View>

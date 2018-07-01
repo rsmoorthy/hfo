@@ -11,7 +11,7 @@ import {
   StatusBar,
   Alert
 } from 'react-native'
-import { Icon } from 'native-base'
+import { Icon, Toast } from 'native-base'
 
 import t from 'tcomb-form-native' // 0.6.9
 import { connect } from 'react-redux'
@@ -128,7 +128,7 @@ class Login extends Component {
           style={{
             flexDirection: 'row',
             marginTop: 50,
-            marginBottom: 30,
+            marginBottom: 20,
             alignItems: 'center',
             justifyContent: 'center'
           }}>
@@ -142,6 +142,19 @@ class Login extends Component {
             <Image style={{ flex: 1, width: 160 }} source={require('../assets/signin_with_google.png')} />
           </TouchableHighlight>
         </View>
+        <TouchableHighlight
+          style={{
+            flex: 0.1,
+            padding: 0,
+            marginBottom: 1,
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onPress={() => this.props.navigation.push('ForgotPasswordModal')}>
+          <View style={{ height: 30, padding: 5, backgroundColor: '#2296f3' }}>
+            <Text style={{ flex: 1, fontSize: 12, color: 'white', fontWeight: 'bold' }}>Forgot Password</Text>
+          </View>
+        </TouchableHighlight>
         <Image
           style={{ alignSelf: 'stretch', flex: 0.5, height: undefined, width: undefined }}
           source={require('../assets/airport1.jpg')}
@@ -151,13 +164,215 @@ class Login extends Component {
           <Text> </Text>
         </View>
         <View style={{ alignSelf: 'center' }}>
-          <Text style={{ color: 'white', fontSize: 12 }}>v0.9.3</Text>
+          <Text style={{ color: 'white', fontSize: 12 }}>v0.9.4</Text>
         </View>
       </View>
     )
   }
 }
 export default connect(utils.mapStateToProps('hfo', ['login']), utils.mapDispatchToProps)(Login)
+
+class _ForgotPasswordModal extends Component {
+  static navigationOptions = {
+    header: null
+  }
+
+  getType = () => {
+    return t.struct({
+      email: t.maybe(utils.tform.Email),
+      mobile: t.maybe(t.Number)
+    })
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      inProgress: false,
+      type: this.getType(),
+      value: {
+        email: '',
+        mobile: ''
+      },
+      options: {
+        fields: {
+          email: {
+            error: 'Require a valid email address?',
+            autoCapitalize: 'none',
+            keyboardType: 'email-address'
+          },
+          mobile: {
+            keyboardType: 'numeric'
+          }
+        },
+        stylesheet: utils.formStyles
+      }
+    }
+  }
+
+  handleSubmit = () => {
+    const value = this._form.getValue()
+    if (value) {
+      this.state.value = value
+      if (value.email || value.mobile) {
+        this.setState({ inProgress: true })
+        this.props.doResetPassword(value, (err, message) => {
+          this.setState({ inProgress: false })
+          if (err) Alert.alert('Invalid email / mobile', err)
+          else {
+            Toast.show({
+              text: 'Your password reset and sent to your email/mobile',
+              buttonText: 'Ok',
+              type: 'success',
+              duration: 4000
+            })
+            this.props.navigation.goBack()
+          }
+        })
+      } else Toast.show({ text: 'Specify either email or mobile', type: 'danger', position: 'top', duration: 3000 })
+    }
+  }
+
+  componentDidMount() {
+    this.props.setOpacity(0.1)
+  }
+
+  componentWillUnmount() {
+    this.props.setOpacity(1.0)
+  }
+
+  render() {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '80%', borderRadius: 8, borderWidth: 1 }}>
+          <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
+          {this.state.inProgress === true && <ActivityIndicator size="large" color="#000" />}
+          <View style={{ padding: 20, width: '100%', alignSelf: 'stretch' }}>
+            <Form
+              ref={c => (this._form = c)}
+              type={this.state.type}
+              value={this.state.value}
+              options={this.state.options}
+            />
+          </View>
+          <Button
+            info
+            disabled={this.state.inProgress}
+            block
+            title="Reset Password"
+            style={{ width: '100%' }}
+            onPress={this.handleSubmit}>
+            <Text> Reset Password </Text>
+          </Button>
+        </View>
+      </View>
+    )
+  }
+}
+
+export const ForgotPasswordModal = connect(utils.mapStateToProps('hfo', ['login', 'meta']), utils.mapDispatchToProps)(
+  _ForgotPasswordModal
+)
+
+class _ChangePasswordModal extends Component {
+  static navigationOptions = {
+    header: null
+  }
+
+  getType = () => {
+    return t.struct({
+      old_password: t.String,
+      password: t.String
+    })
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      inProgress: false,
+      type: this.getType(),
+      value: {
+        old_password: '',
+        password: ''
+      },
+      options: {
+        fields: {
+          old_password: {
+            secureTextEntry: true,
+            autoCapitalize: 'none'
+          },
+          password: {
+            secureTextEntry: true,
+            autoCapitalize: 'none'
+          }
+        },
+        stylesheet: utils.formStyles
+      }
+    }
+  }
+
+  handleSubmit = () => {
+    const value = this._form.getValue()
+    if (value) {
+      this.state.value = value
+      if (value.old_password && value.password) {
+        this.setState({ inProgress: true })
+        this.props.doChangePassword(value, (err, message) => {
+          this.setState({ inProgress: false })
+          if (err) Alert.alert('ERROR: ', err)
+          else {
+            Toast.show({
+              text: 'Your password has been changed successfully',
+              buttonText: 'Ok',
+              type: 'success',
+              duration: 6000
+            })
+            this.props.navigation.goBack()
+          }
+        })
+      }
+    }
+  }
+
+  componentDidMount() {
+    this.props.setOpacity(0.1)
+  }
+
+  componentWillUnmount() {
+    this.props.setOpacity(1.0)
+  }
+
+  render() {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ backgroundColor: 'white', borderColor: 'gray', width: '80%', borderRadius: 8, borderWidth: 1 }}>
+          <Icon name="close-circle" style={{ alignSelf: 'flex-end' }} onPress={() => this.props.navigation.goBack()} />
+          {this.state.inProgress === true && <ActivityIndicator size="large" color="#000" />}
+          <View style={{ padding: 20, width: '100%', alignSelf: 'stretch' }}>
+            <Form
+              ref={c => (this._form = c)}
+              type={this.state.type}
+              value={this.state.value}
+              options={this.state.options}
+            />
+          </View>
+          <Button
+            info
+            disabled={this.state.inProgress}
+            block
+            title="Change Password"
+            style={{ width: '100%' }}
+            onPress={this.handleSubmit}>
+            <Text> Change Password </Text>
+          </Button>
+        </View>
+      </View>
+    )
+  }
+}
+
+export const ChangePasswordModal = connect(utils.mapStateToProps('hfo', ['login', 'meta']), utils.mapDispatchToProps)(
+  _ChangePasswordModal
+)
 
 const styles = StyleSheet.create({
   container: {

@@ -13,7 +13,7 @@ router.get('/', async (req, res, next) => {
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
 
   var ret = await Config.findOne().exec()
-  console.log('returning', ret.data)
+  // console.log('returning', ret.data)
   return res.json({ status: 'ok', config: ret === null ? {} : ret.data })
 })
 
@@ -33,17 +33,17 @@ router.put('/', async (req, res, next) => {
 
   cfg = R.mergeDeepRight(cfg, inp)
 
-  console.log('cfg', cfg, rec)
+  // console.log('cfg', cfg, rec)
   if (rec && rec._id) await Config.findByIdAndUpdate(rec._id, { data: cfg }).exec()
   else {
     var ret = new Config({ data: cfg })
     let r = await ret.save().catch(err => console.log(err.message))
-    console.log('saved data', r)
+    // console.log('saved data', r)
   }
 
   rec = await Config.findOne().exec()
   if (rec) {
-    console.log('rec.data', rec.data)
+    // console.log('rec.data', rec.data)
     return res.json({ status: 'ok', config: rec.data })
   }
   return res.json({ status: 'error', message: 'Unable to update the Config record' })

@@ -3,7 +3,7 @@ var rp = require('request-promise')
 var R = require('ramda')
 var moment = require('moment')
 
-var cfg = require('../config')
+var utils = require('../utils')
 
 const getAirportData = (airports, key, airportCode) => {
   let airport = R.filter(R.propEq('fs', airportCode), airports)
@@ -14,7 +14,7 @@ const getAirportData = (airports, key, airportCode) => {
 export const getSchedule = async (flight, arrivalDate = moment()) => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
 
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/schedules/rest/v1/json/flight/6E/347/arriving/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&extendedOptions=includeNewFields"
   var schedule = await rp
@@ -99,7 +99,7 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
 
 export const getFlightStatus = async (flight, arrivalDate = moment()) => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&airport=BLR"
   var status = await rp.get({
@@ -140,7 +140,7 @@ export const getFlightStatus = async (flight, arrivalDate = moment()) => {
 
 export const getFlightTrack = async (flight, arrivalDate = moment(), airport = 'BLR') => {
   var ad = arrivalDate instanceof moment ? arrivalDate : moment(arrivalDate)
-  var config = await cfg.getConfig()
+  var config = await utils.getConfig()
 
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&airport=BLR"
   // curl -v  -X GET "https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/tracks/6E/347/arr/2018/06/01?appId=30ca01e5&appKey=f5095c7feb99698d483b5d5ddd25bf56&utc=false&includeFlightPlan=false&airport=BLR&maxPositions=10"

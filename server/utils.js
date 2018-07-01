@@ -6,7 +6,8 @@ var Pickups = require('./models/Pickups')
 var Users = require('./models/Users')
 var R = require('ramda')
 var crypto = require('crypto')
-var config = require('./config')['config']['global']
+var config = require('./config')
+var Cfg = require('./models/Config')
 
 const getLoginUser = async req => {
   if (!('authorization' in req.headers)) return {}
@@ -14,7 +15,9 @@ const getLoginUser = async req => {
   if (m === null) return {}
   var resp = { id: m[1] }
   var ret
-  ret = await Users.findById(resp.id).exec()
+  ret = await Users.findById(resp.id)
+    .exec()
+    .catch(err => console.log(err.message))
   if (ret) {
     resp._id = ret._id
     resp.name = ret.name
@@ -60,14 +63,21 @@ const promiseTo = async promise => {
 
 const getPhotoUrl = (id, photo) => {
   if (photo && photo.length && photo.substr(0, 4) === 'data') {
-    return config.SERVER_IP + '/users/photo/' + id + '/' + photo.length
+    return config.global.SERVER_IP + '/users/photo/' + id + '/' + photo.length
   }
   return photo === undefined ? '' : photo
+}
+
+const getConfig = async () => {
+  let db = await Cfg.findOne().exec()
+  let cfg = R.mergeDeepLeft(db ? db.data : {}, config)
+  return cfg
 }
 
 module.exports = {
   getLoginUser,
   checkDuplicateUserRecord,
   promiseTo,
-  getPhotoUrl
+  getPhotoUrl,
+  getConfig
 }

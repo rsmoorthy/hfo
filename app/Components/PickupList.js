@@ -274,7 +274,7 @@ const FeedbackShow = ({ item, login, style }) => (
   </View>
 )
 
-export const CompleteTrip = props => (
+export const CompletePickup = props => (
   <View style={props.style}>
     {(props.login.role === 'Receiver' || props.login.role === 'Passenger' || props.login.role === 'Admin') &&
       props.item.status !== 'Completed' && (
@@ -283,7 +283,7 @@ export const CompleteTrip = props => (
             warning
             style={{ alignSelf: 'stretch' }}
             small
-            title="Complete Trip"
+            title="Complete Pickup"
             onPress={() => {
               if (props.login.role === 'Passenger') props.navigation.push('FeedbackModal', { pickup: props.item })
               if (props.login.role === 'Receiver')
@@ -313,7 +313,7 @@ export const CompleteTrip = props => (
               borderWidth: 1,
               padding: 2
             }}>
-            <Text>Complete Trip</Text>
+            <Text>Complete Pickup</Text>
           </Button>
         </View>
       )}
@@ -321,12 +321,12 @@ export const CompleteTrip = props => (
       <View style={{ flexDirection: 'row' }}>
         <View
           style={{
-            flex: 0.6,
+            flex: 0.5,
             alignItems: 'center',
             justifyContent: 'center',
             paddingRight: 20
           }}>
-          <Text style={{ fontSize: 12 }}> Completed Pickup on: </Text>
+          <Text style={{ fontSize: 12 }}> Completed on: </Text>
         </View>
         <View style={{ flex: 1, paddingLeft: 10 }}>
           <Text
@@ -349,6 +349,31 @@ export const CompleteTrip = props => (
             {props.item.completedDate ? moment(props.item.completedDate).format('Do MMM YYYY HH:mm') : 'unknown'}{' '}
           </Text>
         </View>
+        {props.item.status === 'Completed' &&
+          props.login.role === 'Passenger' &&
+          !props.item.rating && [
+            <View style={{ flex: 0.1 }}>
+              <Text>{'  '}</Text>
+            </View>,
+            <View style={{ flex: 0.7, marginLeft: 10, paddingLeft: 10 }}>
+              <Button
+                warning
+                style={{ alignSelf: 'stretch' }}
+                small
+                title="Feedback"
+                onPress={() => props.navigation.push('FeedbackModal', { pickup: props.item })}
+                style={{
+                  alignSelf: 'stretch',
+                  fontSize: 8,
+                  justifyContent: 'center',
+                  borderColor: 'brown',
+                  borderWidth: 1,
+                  padding: 2
+                }}>
+                <Text style={{ fontSize: 10 }}>Feedback</Text>
+              </Button>
+            </View>
+          ]}
       </View>
     )}
   </View>
@@ -452,7 +477,7 @@ class PickupList extends Component {
                         />
                       )}
                     </View>
-                    <CompleteTrip
+                    <CompletePickup
                       style={{
                         alignSelf: 'stretch',
                         width: '100%',
@@ -615,7 +640,7 @@ class _PickupView extends Component {
                       />
                     </CardItem>
                     <CardItem bordered>
-                      <CompleteTrip
+                      <CompletePickup
                         style={{
                           alignSelf: 'stretch',
                           width: '100%',

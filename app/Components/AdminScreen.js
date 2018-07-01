@@ -361,7 +361,16 @@ class _AdminTemplatesForm extends Component {
 
   getType = () => {
     const template = this.props.navigation.getParam('template', null)
-    const names = ['OTP', 'WelcomePassenger', 'NotifyReceiver', 'PassengerTripCompleted', 'ReceiverTripCompleted']
+    const names = [
+      'OTP',
+      'WelcomePassenger',
+      'NotifyReceiver',
+      'PassengerTripCompleted',
+      'ReceiverTripCompleted',
+      'ReminderPickupPassenger',
+      'ReminderPickupReceiver',
+      'ResetPassword'
+    ]
     const struct = {
       type: t.enums({ SMS: 'SMS', Email: 'Email', Notification: 'Notification' }),
       name: t.enums(R.zipObj(names, names)),
