@@ -73,6 +73,9 @@ const navigationOptions = {
         <Icon name="ios-log-out" onPress={props.doLogout} />
         <Text>Logout</Text>
       </Button>
+      <Text style={{ fontSize: 10, fontStyle: 'italic' }}>
+        {'     '} ver {utils.appVersion}
+      </Text>
     </ScrollView>
   ))
 }

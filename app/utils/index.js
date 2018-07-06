@@ -124,3 +124,5 @@ export const tform = {
     return reg.test(email)
   })
 }
+
+export const appVersion = 'v0.9.5'

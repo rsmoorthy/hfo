@@ -137,6 +137,24 @@ class AdminScreen extends Component {
         }
       },
       {
+        text: 'Referral Code for Display Role',
+        value: this.props.config.global ? this.props.config.global.displayReferralCode : '',
+        screen: 'ConfigItemForm',
+        screenParams: {
+          fields: [
+            {
+              name: 'displayReferralCode',
+              type: t.maybe(t.String),
+              value: this.props.config.global ? this.props.config.global.displayReferralCode : '',
+              label: ' ',
+              scope: 'global',
+              help: 'During Signup, specifying this Referral Code sets the role as Display'
+            }
+          ],
+          title: 'Referral Code for Display Role'
+        }
+      },
+      {
         text: 'MSG91 Credentials',
         screen: 'ConfigItemForm',
         screenParams: {

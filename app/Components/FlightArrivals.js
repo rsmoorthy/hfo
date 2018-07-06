@@ -53,7 +53,7 @@ class FlightArrivals extends Component {
             </Button>
           </Right>
         </Header>
-        <Content>
+        <Content style={{ backgroundColor: 'white' }}>
           <List>
             {flights.map((flight, index) => (
               <ListItem key={index}>
@@ -65,14 +65,10 @@ class FlightArrivals extends Component {
                 </Body>
                 <Right>
                   <Text>{flight.arrivalTime}</Text>
-                  <Icon name="arrow-forward" />
                 </Right>
               </ListItem>
             ))}
           </List>
-          <Button warning onPress={() => this.props.getCurrentFlights()}>
-            <Text> Refresh </Text>
-          </Button>
         </Content>
       </Container>
     )
