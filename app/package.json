@@ -1,6 +1,6 @@
 {
   "name": "hfo",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "private": true,
   "devDependencies": {
     "babel-eslint": "^8.2.3",
