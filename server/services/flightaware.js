@@ -49,7 +49,7 @@ export const getAirportBoards = async airport => {
     form: {
       airport_code: airport,
       type: 'enroute',
-      howMany: '8'
+      howMany: '15'
     },
     json: true,
     auth: {
@@ -64,12 +64,12 @@ export const getAirportBoards = async airport => {
     form: {
       airport_code: airport,
       type: 'arrivals',
-      howMany: '8'
+      howMany: '15'
     },
     json: true,
     auth: {
-      user: config.user,
-      pass: config.pass
+      user: config.flightaware.user,
+      pass: config.flightaware.pass
     },
     rejectUnauthorized: false
   })

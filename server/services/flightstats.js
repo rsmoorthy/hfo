@@ -40,6 +40,8 @@ export const getSchedule = async (flight, arrivalDate = moment()) => {
 
   try {
     schedule = JSON.parse(schedule)
+    if (schedule.error && schedule.error.errorMessage)
+      return [schedule.error.httpStatusCode + ': ' + schedule.error.errorMessage]
     if (schedule.scheduledFlights.length === 0) return ['No flight ' + flight + ' on ' + ad.format('DD MMM YYYY')]
   } catch (err) {
     return ['JSON error ' + err]
@@ -122,6 +124,7 @@ export const getFlightStatus = async (flight, arrivalDate = moment()) => {
   })
 
   status = JSON.parse(status)
+  if (status.error && status.error.errorMessage) return [status.error.httpStatusCode + ': ' + status.error.errorMessage]
   if (status.flightTracks.length === 0) return ['No flight tracks obtained']
   var fl = status.flightStatuses[0]
   return {
@@ -171,6 +174,7 @@ export const getFlightTrack = async (flight, arrivalDate = moment(), airport = '
   if (err) return [err]
 
   status = JSON.parse(status)
+  if (status.error && status.error.errorMessage) return [status.error.httpStatusCode + ': ' + status.error.errorMessage]
   if (status.flightTracks.length === 0) return ['No flight tracks obtained']
   var fl = status.flightTracks[0]
   var position = fl.positions && fl.positions.length ? fl.positions[0] : {}

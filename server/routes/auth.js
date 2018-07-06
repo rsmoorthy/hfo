@@ -71,6 +71,7 @@ router.post('/signup', async function(req, res, next) {
     var config = await utils.getConfig()
     if (inp.referralCode === config.global.receiverReferralCode) inp.role = 'Receiver'
     if (inp.referralCode === config.global.agentReferralCode) inp.role = 'Agent'
+    if (inp.referralCode === config.global.displayReferralCode) inp.role = 'Display'
   }
 
   if (ret) {

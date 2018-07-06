@@ -13,7 +13,6 @@ router.get('/', async function(req, res, next) {
   var user = await utils.getLoginUser(req)
   if (!('role' in user)) return res.json({ status: 'error', message: 'Invalid Login Token' })
 
-  console.log(cache.time)
   if (new Date().getTime() - cache.time < 300 * 1000) {
     console.log('returning cached date')
     res.json(cache.data)

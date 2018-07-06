@@ -154,7 +154,10 @@ router.get('/:scope/:id?', async function(req, res, next) {
       q.pickupDate = { $gt: new Date(), $lt: eod(new Date()) }
     } else if (scope === 'current') {
       q.status = { $in: ['New', 'Assigned'] }
-      q.pickupDate = { $gt: new Date(), $lt: addHours(new Date(), 1) }
+      // q.pickupDate = { $gt: new Date(), $lt: addHours(new Date(), 24) }
+    } else if (scope === 'display') {
+      q.status = { $in: ['New', 'Assigned'] }
+      q.pickupDate = { $gt: addHours(new Date(), -2), $lt: addHours(new Date(), 2) }
     } else q.status = { $in: ['New', 'Assigned'] }
   }
 

@@ -9,14 +9,13 @@ var Transactions = require('../models/Transactions')
 
 var utils = require('../utils')
 
-var transporter = nodemailer.createTransport({
-  SES: new aws.SES(),
-  sendingRate: 1
-})
-
 export const sendEmail = async email => {
   var config = await utils.getConfig()
   aws.config.update(config['sesaws'])
+  var transporter = nodemailer.createTransport({
+    SES: new aws.SES(),
+    sendingRate: 1
+  })
   var params = {}
   params.from = email.from
   params.to = email.to
