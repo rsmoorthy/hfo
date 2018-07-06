@@ -1,0 +1,63 @@
+{
+  "name": "webhfo",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "babel-eslint": "^8.2.5",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "eslint": "^5.0.1",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-prettier": "^2.6.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-react": "^7.10.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-expo-web": "^0.0.5",
+    "babel-plugin-react-native-web": "^0.4.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-imports": "^1.4.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "css-loader": "^0.28.7",
+    "file-loader": "^1.1.7",
+    "jest-expo": "~27.0.0",
+    "react-native-scripts": "latest",
+    "react-test-renderer": "16.3.1",
+    "style-loader": "^0.19.0"
+  },
+  "main": "./node_modules/react-native-scripts/build/bin/crna-entry-web.js",
+  "scripts": {
+    "start": "react-native-scripts start",
+    "eject": "react-native-scripts eject",
+    "android": "react-native-scripts android",
+    "ios": "react-native-scripts ios",
+    "test": "jest",
+    "web": "webpack-dev-server -d --config ./webpack.config.js  --inline --hot --colors --content-base public/ --history-api-fallback",
+    "build": "NODE_ENV=production webpack -p --config ./webpack.config.js"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "expo": "^27.0.1",
+    "expo-web": "^0.0.12",
+    "moment": "^2.22.2",
+    "qs": "^6.5.2",
+    "ramda": "^0.25.0",
+    "react": "16.3.1",
+    "react-dom": "16.3.1",
+    "react-native": "~0.55.2",
+    "react-native-web": "^0.4.0",
+    "react-native-web-vector-icons": "^4.4.3",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.0",
+    "redux-persist": "^5.10.0",
+    "redux-thunk": "^2.3.0",
+    "tcomb-form": "^0.9.20",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "2.9.4"
+  }
+}
